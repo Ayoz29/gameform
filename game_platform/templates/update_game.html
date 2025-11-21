@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование: {{ game.title }} - Game Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0"><i class="fas fa-edit me-2"></i>Редактирование игры</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_game', game_id=game.id) }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Название игры *</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{{ game.title }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание игры</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ game.description }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория *</label>
+                        <select class="form-control" id="category" name="category" required>
+                            <option value="">Выберите категорию</option>
+                            {% for category in categories %}
+                            <option value="{{ category }}" {% if game.category == category %}selected{% endif %}>{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="html_file" class="form-label">Новый HTML файл игры (оставьте пустым чтобы не менять)</label>
+                        <input type="file" class="form-control" id="html_file" name="html_file"
+                               accept=".html,.htm">
+                        <div class="form-text">Текущий файл: {{ game.html_file.split('/')[-1] }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cover_image" class="form-label">Новая обложка игры (оставьте пустым чтобы не менять)</label>
+                        <input type="file" class="form-control" id="cover_image" name="cover_image"
+                               accept="image/*">
+                        <div class="form-text">Текущая обложка: {{ game.cover_image.split('/')[-1] }}</div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-shield-alt me-2"></i>Проверка безопасности</h6>
+                        <p class="mb-0 small">
+                            При загрузке нового HTML файла он будет проверен на запрещенный контент.
+                        </p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-1"></i> Сохранить изменения
+                        </button>
+                        <a href="{{ url_for('play_game', game_id=game.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i> Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

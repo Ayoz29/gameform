@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра: {{ game.title }} - Game Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            /* Защита от копирования */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            z-index: 10000;
+            background: #000;
+        }
+
+        .game-frame-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+        }
+
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.3rem;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(99, 102, 241, 0.3);
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Скрытые элементы управления */
+        .hidden-controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10001;
+            opacity: 0;
+            cursor: none;
+        }
+
+        /* Область для выхода по клику в углу */
+        .exit-area {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 10002;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Индикатор загрузки ошибки */
+        .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10003;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-frame-container">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="text-center">
+                    <div class="spinner"></div>
+                    <div class="mt-3">Загрузка игры...</div>
+                    <div class="text-muted mt-2">Пожалуйста, подождите</div>
+                </div>
+            </div>
+            <iframe
+                src="{{ url_for('serve_game', filename=game.html_file.split('/')[-1]) }}"
+                class="game-frame"
+                title="{{ game.title }}"
+                id="gameFrame"
+                onload="hideLoading()"
+                allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
+    <!-- Скрытая область для выхода -->
+    <div class="exit-area" id="exitArea" title="Нажмите для выхода"></div>
+
+    <!-- Оверлей для ошибок -->
+    <div class="error-overlay" id="errorOverlay">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+            <div class="fs-5">Ошибка загрузки игры</div>
+            <div class="text-muted mt-2 mb-3">Не удалось загрузить игру. Попробуйте позже.</div>
+            <button class="btn btn-primary mt-2" onclick="closeGame()">
+                <i class="fas fa-arrow-left me-2"></i> Вернуться назад
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Защита от копирования
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V' || e.key === 'a' || e.key === 'A')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        function closeGame() {
+            window.location.href = "{{ url_for('index') }}";
+        }
+
+        function hideLoading() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 500);
+            }
+        }
+
+        function showError() {
+            const errorOverlay = document.getElementById('errorOverlay');
+            if (errorOverlay) {
+                errorOverlay.style.display = 'flex';
+            }
+        }
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeGame();
+            }
+        });
+
+        // Закрытие по клику в правом верхнем углу
+        document.getElementById('exitArea').addEventListener('click', function() {
+            closeGame();
+        });
+
+        // Закрытие по двойному клику в любом месте
+        let clickCount = 0;
+        let clickTimer;
+
+        document.addEventListener('click', function(event) {
+            if (event.target.tagName === 'IFRAME' ||
+                event.target.id === 'exitArea' ||
+                event.target.closest('#errorOverlay')) {
+                return;
+            }
+
+            clickCount++;
+            if (clickCount === 1) {
+                clickTimer = setTimeout(function() {
+                    clickCount = 0;
+                }, 500);
+            } else if (clickCount === 2) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                closeGame();
+            }
+        });
+
+        const gameFrame = document.getElementById('gameFrame');
+        if (gameFrame) {
+            gameFrame.addEventListener('error', function() {
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+                showError();
+            });
+        }
+
+        // Автоматическое скрытие загрузки через 10 секунд
+        setTimeout(hideLoading, 10000);
+
+        // Плавное появление
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.game-container').style.opacity = '0';
+            setTimeout(() => {
+                document.querySelector('.game-container').style.transition = 'opacity 0.5s ease';
+                document.querySelector('.game-container').style.opacity = '1';
+            }, 100);
+        });
+
+        // Скрытие курсора через 3 секунды без движения
+        let cursorTimer;
+        document.addEventListener('mousemove', function() {
+            document.body.style.cursor = 'default';
+            clearTimeout(cursorTimer);
+            cursorTimer = setTimeout(() => {
+                document.body.style.cursor = 'none';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

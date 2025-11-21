@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О нас - Game Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #1e40af;
+            --accent: #3b82f6;
+            --dark: #0f172a;
+            --light: #f1f5f9;
+            --text: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 50%, var(--secondary) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Сезонные анимации */
+        .seasonal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* Дождь для сентября, октября, ноября */
+        .rain .drop {
+            position: absolute;
+            top: -20px;
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(transparent, var(--accent));
+            animation: rainFall 1.5s linear infinite;
+        }
+
+        @keyframes rainFall {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0.5;
+            }
+        }
+
+        /* Снег для декабря, января, февраля */
+        .snow .flake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            font-size: 12px;
+            animation: snowFall 8s linear infinite;
+        }
+
+        @keyframes snowFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Цветы для марта, апреля, мая */
+        .flowers .petal {
+            position: absolute;
+            top: -20px;
+            color: #f472b6;
+            font-size: 14px;
+            animation: flowerFall 10s linear infinite;
+        }
+
+        @keyframes flowerFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* Листья для июня, июля, августа */
+        .leaves .leaf {
+            position: absolute;
+            top: -20px;
+            color: #22c55e;
+            font-size: 16px;
+            animation: leafFall 12s linear infinite;
+        }
+
+        @keyframes leafFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .about-hero {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .about-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .about-hero p {
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        .content-section {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .content-section:hover {
+            transform: translateY(-3px);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .section-title {
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-align: center;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1.5rem 1rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .team-card {
+            background: rgba(30, 58, 138, 0.5);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .team-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .team-card h3 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .team-role {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .team-description {
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .contact-info {
+            background: var(--primary);
+            color: white;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 0.3rem;
+            transition: transform 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .contact-info:hover {
+            transform: translateY(-3px);
+            background: var(--accent);
+        }
+
+        .mission-vision {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .mission-card, .vision-card {
+            background: rgba(30, 58, 138, 0.4);
+            padding: 1.5rem;
+            border-radius: 10px;
+            transition: transform 0.3s;
+            text-align: center;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .mission-card:hover, .vision-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .mission-card i, .vision-card i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .mission-card h3, .vision-card h3 {
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        footer {
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--text);
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .flash-messages {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .flash-message {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+
+        /* Анимации для появления элементов при прокрутке */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s, transform 0.6s;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .about-hero h1 {
+                font-size: 2rem;
+            }
+
+            .content-section {
+                padding: 1.5rem 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Сезонные анимации будут добавлены через JavaScript -->
+    <div class="seasonal-bg" id="seasonalBg"></div>
+
+    <header>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-gamepad"></i> GamePlatform
+            </a>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Главная</a></li>
+                <li><a href="{{ url_for('upload_game') }}">Загрузить игру</a></li>
+                <li><a href="{{ url_for('about') }}">О нас</a></li>
+                {% if 'username' in session %}
+                    <li><a href="{{ url_for('logout') }}">Выйти ({{ session.username }})</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Войти</a></li>
+                    <li><a href="{{ url_for('register') }}">Регистрация</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <section class="about-hero">
+            <h1>О нашей платформе</h1>
+            <p>Инновационная площадка для разработчиков игр и геймеров</p>
+        </section>
+
+        <section class="content-section fade-in">
+            <h2 class="section-title">Наша миссия и видение</h2>
+            <div class="mission-vision">
+                <div class="mission-card fade-in delay-1">
+                    <i class="fas fa-bullseye"></i>
+                    <h3>Наша миссия</h3>
+                    <p>{{ platform_info.mission }}</p>
+                </div>
+                <div class="vision-card fade-in delay-2">
+                    <i class="fas fa-eye"></i>
+                    <h3>Наше видение</h3>
+                    <p>{{ platform_info.vision }}</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section fade-in">
+            <h2 class="section-title">Статистика платформы</h2>
+            <div class="stats-grid">
+                <div class="stat-card fade-in delay-1">
+                    <span class="stat-number">{{ stats.total_games }}</span>
+                    <div class="stat-label">Игр на платформе</div>
+                </div>
+                <div class="stat-card fade-in delay-2">
+                    <span class="stat-number">{{ stats.total_users }}</span>
+                    <div class="stat-label">Пользователей</div>
+                </div>
+                <div class="stat-card fade-in delay-3">
+                    <span class="stat-number">{{ stats.total_plays }}</span>
+                    <div class="stat-label">Сыграно игр</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section fade-in">
+            <h2 class="section-title">История создания</h2>
+            <div style="text-align: center; line-height: 1.7;">
+                <p class="fade-in delay-1">
+                    Game Platform была основана в {{ platform_info.launch_year }} году с целью создания открытой платформы
+                    для разработчиков игр. Мы предоставляем инструменты для публикации, распространения и монетизации игровых проектов.
+                </p>
+                <p class="fade-in delay-2" style="margin-top: 1rem;">
+                    Наша платформа объединяет талантливых разработчиков и преданных геймеров, создавая уникальную экосистему
+                    для игровой индустрии.
+                </p>
+            </div>
+        </section>
+
+        <section class="content-section fade-in">
+            <h2 class="section-title">Наша команда</h2>
+            <div class="team-grid">
+                {% for member in team_members %}
+                <div class="team-card fade-in delay-{{ loop.index }}">
+                    <div class="team-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>{{ member.name }}</h3>
+                    <div class="team-role">{{ member.role }}</div>
+                    <p class="team-description">{{ member.description }}</p>
+                    {% if member.email %}
+                    <div class="contact-info">
+                        <i class="fas fa-envelope"></i> {{ member.email }}
+                    </div>
+                    {% endif %}
+                    {% if member.phone %}
+                    <div class="contact-info">
+                        <i class="fas fa-phone"></i> {{ member.phone }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="content-section fade-in">
+            <h2 class="section-title">Контакты</h2>
+            <div style="text-align: center;">
+                <div class="contact-info fade-in delay-1">
+                    <i class="fas fa-map-marker-alt"></i><br>
+                    <strong>Адрес:</strong><br>
+                    Узбекистан, Фергана
+                </div>
+                <div class="contact-info fade-in delay-2">
+                    <i class="fas fa-phone"></i><br>
+                    <strong>Телефон:</strong><br>
+                    +998945865577
+                </div>
+                <div class="contact-info fade-in delay-3">
+                    <i class="fas fa-envelope"></i><br>
+                    <strong>Email:</strong><br>
+                    ayozbek94@gmail.com
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Game Platform. Все права защищены.</p>
+            <p>Создано с ♥️ для игрового сообщества</p>
+        </div>
+    </footer>
+
+    <script>
+        // Определение текущего сезона и создание соответствующей анимации
+        function initSeasonalAnimation() {
+            const now = new Date();
+            const month = now.getMonth() + 1; // 1-12
+            const seasonalBg = document.getElementById('seasonalBg');
+
+            let seasonClass = '';
+            let elements = [];
+
+            // Сентябрь, Октябрь, Ноябрь - дождь
+            if (month >= 9 && month <= 11) {
+                seasonClass = 'rain';
+                for (let i = 0; i < 40; i++) {
+                    elements.push(`<div class="drop" style="left: ${Math.random() * 100}%; animation-delay: ${Math.random() * 5}s;"></div>`);
+                }
+            }
+            // Декабрь, Январь, Февраль - снег
+            else if (month === 12 || month <= 2) {
+                seasonClass = 'snow';
+                for (let i = 0; i < 30; i++) {
+                    elements.push(`<div class="flake" style="left: ${Math.random() * 100}%; animation-delay: ${Math.random() * 8}s;">❄</div>`);
+                }
+            }
+            // Март, Апрель, Май - цветы
+            else if (month >= 3 && month <= 5) {
+                seasonClass = 'flowers';
+                for (let i = 0; i < 25; i++) {
+                    elements.push(`<div class="petal" style="left: ${Math.random() * 100}%; animation-delay: ${Math.random() * 10}s;">✿</div>`);
+                }
+            }
+            // Июнь, Июль, Август - листья
+            else {
+                seasonClass = 'leaves';
+                for (let i = 0; i < 20; i++) {
+                    elements.push(`<div class="leaf" style="left: ${Math.random() * 100}%; animation-delay: ${Math.random() * 12}s;">🍃</div>`);
+                }
+            }
+
+            seasonalBg.className = 'seasonal-bg ' + seasonClass;
+            seasonalBg.innerHTML = elements.join('');
+        }
+
+        // Анимация появления элементов при прокрутке
+        document.addEventListener('DOMContentLoaded', function() {
+            initSeasonalAnimation();
+
+            const fadeElements = document.querySelectorAll('.fade-in');
+
+            const fadeInObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            fadeElements.forEach(element => {
+                fadeInObserver.observe(element);
+            });
+
+            // Анимация для статистики
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(stat => {
+                const target = parseInt(stat.textContent);
+                let current = 0;
+                const increment = target / 30;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    stat.textContent = Math.round(current);
+                }, 50);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Улучшенный Кликер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .click-counter {
+            font-size: 4em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 30px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.1s ease;
+        }
+
+        .click-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 25px 50px;
+            font-size: 1.5em;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+            margin-bottom: 30px;
+        }
+
+        .click-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.6);
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .upgrades {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .upgrade-item {
+            background: rgba(255,255,255,0.8);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-item:hover {
+            transform: translateX(5px);
+            background: rgba(255,255,255,0.9);
+        }
+
+        .upgrade-cost {
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .achievements {
+            margin-top: 30px;
+        }
+
+        .achievement {
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            margin: 5px;
+            display: inline-block;
+        }
+
+        .achievement.unlocked {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 1s ease-out forwards;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .level-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .level-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .click-button {
+                padding: 20px 40px;
+                font-size: 1.3em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚡ Улучшенный Кликер</h1>
+        <div class="subtitle">Кликай как можно быстрее и открывай улучшения!</div>
+        
+        <div class="level-bar">
+            <div class="level-progress" id="levelProgress"></div>
+        </div>
+        
+        <div class="click-counter" id="clickCount">0</div>
+        
+        <button class="click-button" id="clickButton">КЛИКАЙ СЕЙЧАС!</button>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Кликов в секунду</div>
+                <div class="stat-value" id="cps">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Всего кликов</div>
+                <div class="stat-value" id="totalClicks">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Уровень</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Монеты</div>
+                <div class="stat-value" id="coins">0</div>
+            </div>
+        </div>
+        
+        <div class="upgrades">
+            <h3>🛠️ Улучшения</h3>
+            <div class="upgrade-item" onclick="buyUpgrade('autoClicker')">
+                <span>🤖 Авто-кликер (+1/сек)</span>
+                <span class="upgrade-cost" id="autoClickerCost">10 монет</span>
+            </div>
+            <div class="upgrade-item" onclick="buyUpgrade('clickPower')">
+                <span>💪 Сила клика (x2)</span>
+                <span class="upgrade-cost" id="clickPowerCost">25 монет</span>
+            </div>
+            <div class="upgrade-item" onclick="buyUpgrade('criticalChance')">
+                <span>🎯 Шанс крита (+5%)</span>
+                <span class="upgrade-cost" id="criticalChanceCost">50 монет</span>
+            </div>
+        </div>
+        
+        <div class="achievements">
+            <h3>🏆 Достижения</h3>
+            <div class="achievement" id="achieve10">10 кликов</div>
+            <div class="achievement" id="achieve100">100 кликов</div>
+            <div class="achievement" id="achieve1000">1000 кликов</div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            clicks: 0,
+            coins: 0,
+            level: 1,
+            clickPower: 1,
+            autoClicker: 0,
+            criticalChance: 0,
+            upgrades: {
+                autoClicker: { level: 0, cost: 10 },
+                clickPower: { level: 0, cost: 25 },
+                criticalChance: { level: 0, cost: 50 }
+            },
+            achievements: {
+                10: false,
+                100: false,
+                1000: false
+            }
+        };
+
+        const clickCount = document.getElementById('clickCount');
+        const clickButton = document.getElementById('clickButton');
+        const cpsDisplay = document.getElementById('cps');
+        const totalClicksDisplay = document.getElementById('totalClicks');
+        const levelDisplay = document.getElementById('level');
+        const coinsDisplay = document.getElementById('coins');
+        const levelProgress = document.getElementById('levelProgress');
+
+        // Статистика кликов в секунду
+        let clickTimes = [];
+        let lastAutoClick = Date.now();
+
+        function updateDisplay() {
+            clickCount.textContent = gameState.clicks;
+            coinsDisplay.textContent = gameState.coins;
+            levelDisplay.textContent = gameState.level;
+            totalClicksDisplay.textContent = gameState.clicks;
+            
+            // Обновляем прогресс уровня
+            const progress = (gameState.clicks % 100) / 100 * 100;
+            levelProgress.style.width = progress + '%';
+            
+            // Обновляем стоимость улучшений
+            document.getElementById('autoClickerCost').textContent = 
+                gameState.upgrades.autoClicker.cost + ' монет';
+            document.getElementById('clickPowerCost').textContent = 
+                gameState.upgrades.clickPower.cost + ' монет';
+            document.getElementById('criticalChanceCost').textContent = 
+                gameState.upgrades.criticalChance.cost + ' монет';
+        }
+
+        function createParticle(x, y) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            
+            // Случайное направление
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 50 + Math.random() * 100;
+            particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+            particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+            
+            document.body.appendChild(particle);
+            
+            // Удаляем частицу после анимации
+            setTimeout(() => {
+                particle.remove();
+            }, 1000);
+        }
+
+        function handleClick(event) {
+            // Основной клик
+            let clickValue = gameState.clickPower;
+            
+            // Проверка на критический удар
+            if (Math.random() * 100 < gameState.criticalChance) {
+                clickValue *= 3;
+                createParticle(event.clientX, event.clientY);
+                clickCount.style.color = '#ff4757';
+                setTimeout(() => {
+                    clickCount.style.color = '#4CAF50';
+                }, 200);
+            }
+            
+            gameState.clicks += clickValue;
+            gameState.coins += clickValue;
+            
+            // Анимация счетчика
+            clickCount.style.transform = 'scale(1.3)';
+            setTimeout(() => {
+                clickCount.style.transform = 'scale(1)';
+            }, 100);
+            
+            // Создаем частицы
+            for (let i = 0; i < 5; i++) {
+                createParticle(event.clientX, event.clientY);
+            }
+            
+            // Обновляем статистику кликов в секунду
+            const now = Date.now();
+            clickTimes.push(now);
+            clickTimes = clickTimes.filter(time => now - time < 1000);
+            cpsDisplay.textContent = clickTimes.length;
+            
+            // Проверяем достижения
+            checkAchievements();
+            
+            // Проверяем уровень
+            if (gameState.clicks >= gameState.level * 100) {
+                gameState.level++;
+                levelDisplay.textContent = gameState.level;
+            }
+            
+            updateDisplay();
+        }
+
+        function buyUpgrade(type) {
+            const upgrade = gameState.upgrades[type];
+            
+            if (gameState.coins >= upgrade.cost) {
+                gameState.coins -= upgrade.cost;
+                
+                switch(type) {
+                    case 'autoClicker':
+                        gameState.autoClicker++;
+                        upgrade.cost = Math.floor(upgrade.cost * 1.5);
+                        break;
+                    case 'clickPower':
+                        gameState.clickPower *= 2;
+                        upgrade.cost = Math.floor(upgrade.cost * 2);
+                        break;
+                    case 'criticalChance':
+                        gameState.criticalChance += 5;
+                        upgrade.cost = Math.floor(upgrade.cost * 1.8);
+                        break;
+                }
+                
+                updateDisplay();
+            }
+        }
+
+        function checkAchievements() {
+            const achievements = [
+                { threshold: 10, id: 'achieve10' },
+                { threshold: 100, id: 'achieve100' },
+                { threshold: 1000, id: 'achieve1000' }
+            ];
+            
+            achievements.forEach(achieve => {
+                if (!gameState.achievements[achieve.threshold] && gameState.clicks >= achieve.threshold) {
+                    gameState.achievements[achieve.threshold] = true;
+                    const element = document.getElementById(achieve.id);
+                    element.classList.add('unlocked');
+                    
+                    // Награда за достижение
+                    gameState.coins += achieve.threshold;
+                }
+            });
+        }
+
+        // Авто-кликер
+        function autoClick() {
+            const now = Date.now();
+            if (now - lastAutoClick >= 1000) {
+                gameState.clicks += gameState.autoClicker;
+                gameState.coins += gameState.autoClicker;
+                lastAutoClick = now;
+                updateDisplay();
+            }
+            requestAnimationFrame(autoClick);
+        }
+
+        // Инициализация
+        clickButton.addEventListener('click', handleClick);
+        autoClick();
+        updateDisplay();
+    </script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестовая игра</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .game-container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        button {
+            background: #ff6b6b;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        #score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .instructions {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎮 Тестовая игра</h1>
+        <div id="score">Счет: <span id="scoreValue">0</span></div>
+
+        <div class="controls">
+            <button onclick="addPoint()">➕ Добавить очко</button>
+            <button onclick="resetScore()">🔄 Сбросить</button>
+        </div>
+
+        <div class="instructions">
+            <h3>Как играть:</h3>
+            <p>• Нажимайте кнопку "Добавить очко" чтобы увеличивать счет</p>
+            <p>• Нажмите "Сбросить" чтобы начать заново</p>
+            <p>• Постарайтесь набрать как можно больше очков!</p>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+
+        function addPoint() {
+            score++;
+            document.getElementById('scoreValue').textContent = score;
+
+            const scoreElement = document.getElementById('scoreValue');
+            scoreElement.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                scoreElement.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        function resetScore() {
+            score = 0;
+            document.getElementById('scoreValue').textContent = score;
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                addPoint();
+                event.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

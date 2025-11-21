@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Угадай Число</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .number-display {
+            font-size: 5em;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 20px 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.1);
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .input-container {
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .number-input {
+            width: 200px;
+            padding: 15px 20px;
+            font-size: 1.5em;
+            text-align: center;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .number-input:focus {
+            border-color: #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .game-button {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+            margin: 10px;
+        }
+
+        .game-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(78, 205, 196, 0.6);
+        }
+
+        .game-button:active {
+            transform: translateY(1px);
+        }
+
+        .game-button.reset {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .message {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message.correct {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+        }
+
+        .message.hint {
+            background: rgba(255, 165, 2, 0.2);
+            color: #ffa502;
+        }
+
+        .message.error {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.8);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4ecdc4;
+            margin: 5px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .history {
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 10px;
+        }
+
+        .history-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .history-item.low {
+            background: rgba(255, 165, 2, 0.1);
+            border-left: 4px solid #ffa502;
+        }
+
+        .history-item.high {
+            background: rgba(255, 71, 87, 0.1);
+            border-left: 4px solid #ff4757;
+        }
+
+        .history-item.correct {
+            background: rgba(46, 213, 115, 0.1);
+            border-left: 4px solid #2ed573;
+        }
+
+        .range-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 0 10px;
+        }
+
+        .range-number {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .range-line {
+            height: 6px;
+            background: #4ecdc4;
+            border-radius: 3px;
+            margin: 10px 0;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        .range-marker {
+            position: absolute;
+            top: -5px;
+            width: 16px;
+            height: 16px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            transition: all 0.5s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ff6b6b;
+            border-radius: 0;
+            opacity: 0;
+            animation: confetti-fall 5s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(1000px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            
+            .number-display {
+                font-size: 3.5em;
+                height: 80px;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-button {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎯 Угадай Число</h1>
+        <div class="subtitle">Я загадал число от 1 до 100. Сможешь угадать?</div>
+        
+        <div class="number-display" id="numberDisplay">?</div>
+        
+        <div class="range-indicator">
+            <span class="range-number">1</span>
+            <span class="range-number">100</span>
+        </div>
+        <div class="range-line">
+            <div class="range-marker" id="rangeMarker"></div>
+        </div>
+        
+        <div class="input-container">
+            <input type="number" class="number-input" id="numberInput" min="1" max="100" placeholder="Введите число">
+        </div>
+        
+        <div>
+            <button class="game-button" id="guessButton">Проверить</button>
+            <button class="game-button reset" id="resetButton">Новая игра</button>
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="stats-container">
+            <div class="stat">
+                <div class="stat-label">Попытки</div>
+                <div class="stat-value" id="attempts">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Рекорд</div>
+                <div class="stat-value" id="bestScore">-</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Игр сыграно</div>
+                <div class="stat-value" id="gamesPlayed">0</div>
+            </div>
+        </div>
+        
+        <div class="history" id="history"></div>
+    </div>
+
+    <script>
+        let gameState = {
+            targetNumber: 0,
+            attempts: 0,
+            gamesPlayed: 0,
+            bestScore: null,
+            gameActive: false,
+            guessHistory: []
+        };
+
+        const numberDisplay = document.getElementById('numberDisplay');
+        const numberInput = document.getElementById('numberInput');
+        const guessButton = document.getElementById('guessButton');
+        const resetButton = document.getElementById('resetButton');
+        const message = document.getElementById('message');
+        const attemptsDisplay = document.getElementById('attempts');
+        const bestScoreDisplay = document.getElementById('bestScore');
+        const gamesPlayedDisplay = document.getElementById('gamesPlayed');
+        const historyContainer = document.getElementById('history');
+        const rangeMarker = document.getElementById('rangeMarker');
+
+        function initGame() {
+            gameState.targetNumber = Math.floor(Math.random() * 100) + 1;
+            gameState.attempts = 0;
+            gameState.gameActive = true;
+            gameState.guessHistory = [];
+            
+            numberDisplay.textContent = '?';
+            numberDisplay.style.color = '#ff6b6b';
+            numberInput.value = '';
+            message.textContent = '';
+            message.className = 'message';
+            attemptsDisplay.textContent = '0';
+            historyContainer.innerHTML = '';
+            updateRangeMarker(50);
+            
+            numberInput.focus();
+            
+            console.log('Загаданное число:', gameState.targetNumber); // Для отладки
+        }
+
+        function updateRangeMarker(value) {
+            const percentage = ((value - 1) / 99) * 100;
+            rangeMarker.style.left = `${percentage}%`;
+        }
+
+        function createConfetti() {
+            const container = document.querySelector('.game-container');
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = getRandomColor();
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        function getRandomColor() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#ff9a9e', '#a29bfe'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function addHistoryItem(guess, type) {
+            const historyItem = document.createElement('div');
+            historyItem.className = `history-item ${type}`;
+            
+            let icon = '';
+            if (type === 'low') icon = '📈';
+            else if (type === 'high') icon = '📉';
+            else icon = '🎉';
+            
+            historyItem.innerHTML = `
+                <span>${icon} ${guess}</span>
+                <span>${type === 'correct' ? 'Угадал!' : (type === 'low' ? 'Мало' : 'Много')}</span>
+            `;
+            
+            historyContainer.prepend(historyItem);
+            
+            // Прокрутка к верху
+            historyContainer.scrollTop = 0;
+        }
+
+        function handleGuess() {
+            if (!gameState.gameActive) return;
+            
+            const userGuess = parseInt(numberInput.value);
+            
+            // Проверка ввода
+            if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+                showMessage('Введите число от 1 до 100!', 'error');
+                numberInput.focus();
+                return;
+            }
+            
+            gameState.attempts++;
+            attemptsDisplay.textContent = gameState.attempts;
+            
+            // Проверка угадывания
+            if (userGuess === gameState.targetNumber) {
+                // Правильный ответ
+                gameState.gameActive = false;
+                numberDisplay.textContent = userGuess;
+                numberDisplay.style.color = '#2ed573';
+                numberDisplay.classList.add('pulse');
+                
+                showMessage(`🎉 Поздравляю! Вы угадали за ${gameState.attempts} попыток!`, 'correct');
+                addHistoryItem(userGuess, 'correct');
+                
+                // Создаем конфетти
+                createConfetti();
+                
+                // Обновляем статистику
+                gameState.gamesPlayed++;
+                gamesPlayedDisplay.textContent = gameState.gamesPlayed;
+                
+                if (gameState.bestScore === null || gameState.attempts < gameState.bestScore) {
+                    gameState.bestScore = gameState.attempts;
+                    bestScoreDisplay.textContent = gameState.bestScore;
+                }
+                
+                setTimeout(() => {
+                    numberDisplay.classList.remove('pulse');
+                }, 500);
+                
+            } else {
+                // Неправильный ответ - даем подсказку
+                const isLow = userGuess < gameState.targetNumber;
+                const messageText = isLow ? '📈 Слишком маленькое число!' : '📉 Слишком большое число!';
+                const messageType = isLow ? 'hint' : 'hint';
+                const historyType = isLow ? 'low' : 'high';
+                
+                showMessage(messageText, messageType);
+                addHistoryItem(userGuess, historyType);
+                
+                // Анимация поля ввода
+                numberInput.classList.add('pulse');
+                setTimeout(() => {
+                    numberInput.classList.remove('pulse');
+                }, 300);
+                
+                // Обновляем маркер диапазона
+                updateRangeMarker(userGuess);
+            }
+            
+            numberInput.value = '';
+            numberInput.focus();
+        }
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.classList.add('show');
+            
+            // Автоматическое скрытие сообщения через 3 секунды (кроме правильного ответа)
+            if (type !== 'correct') {
+                setTimeout(() => {
+                    message.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Обработчики событий
+        guessButton.addEventListener('click', handleGuess);
+        
+        resetButton.addEventListener('click', () => {
+            initGame();
+        });
+        
+        numberInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleGuess();
+            }
+        });
+
+        // Инициализация игры при загрузке
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            bestScoreDisplay.textContent = gameState.bestScore === null ? '-' : gameState.bestScore;
+        });
+    </script>
+</body>
+</html>

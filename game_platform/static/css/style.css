@@ -1,0 +1,763 @@
+/* ===== ОСНОВНЫЕ СТИЛИ ===== */
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #f59e0b;
+    --accent: #ec4899;
+    --dark: #1e293b;
+    --light: #f8fafc;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --gradient-secondary: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    --gradient-accent: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--light);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ===== АНИМИРОВАННЫЙ ФОН ===== */
+.background-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.floating-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.shape {
+    position: absolute;
+    opacity: 0.1;
+    animation: float 20s infinite linear;
+    filter: blur(1px);
+}
+
+.shape:nth-child(1) { /* Круг */
+    width: 100px;
+    height: 100px;
+    background: var(--primary);
+    border-radius: 50%;
+    top: 10%;
+    left: 5%;
+    animation-delay: 0s;
+    animation-duration: 25s;
+}
+
+.shape:nth-child(2) { /* Квадрат */
+    width: 80px;
+    height: 80px;
+    background: var(--secondary);
+    top: 70%;
+    left: 10%;
+    animation-delay: 2s;
+    animation-duration: 30s;
+}
+
+.shape:nth-child(3) { /* Треугольник */
+    width: 0;
+    height: 0;
+    border-left: 50px solid transparent;
+    border-right: 50px solid transparent;
+    border-bottom: 100px solid var(--accent);
+    top: 20%;
+    right: 10%;
+    animation-delay: 4s;
+    animation-duration: 35s;
+}
+
+.shape:nth-child(4) { /* Шестиугольник */
+    width: 120px;
+    height: 70px;
+    background: var(--info);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    bottom: 10%;
+    right: 15%;
+    animation-delay: 6s;
+    animation-duration: 40s;
+}
+
+.shape:nth-child(5) { /* Звезда */
+    width: 80px;
+    height: 80px;
+    background: var(--success);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    top: 50%;
+    left: 20%;
+    animation-delay: 8s;
+    animation-duration: 45s;
+}
+
+.shape:nth-child(6) { /* Ромб */
+    width: 60px;
+    height: 60px;
+    background: var(--warning);
+    transform: rotate(45deg);
+    bottom: 30%;
+    left: 80%;
+    animation-delay: 10s;
+    animation-duration: 50s;
+}
+
+.shape:nth-child(7) { /* Сердце */
+    width: 80px;
+    height: 80px;
+    background: var(--danger);
+    clip-path: path("M40,20 C50,0 70,10 70,30 C70,50 40,70 40,70 C40,70 10,50 10,30 C10,10 30,0 40,20 Z");
+    top: 80%;
+    right: 30%;
+    animation-delay: 12s;
+    animation-duration: 55s;
+}
+
+.shape:nth-child(8) { /* Восьмиугольник */
+    width: 90px;
+    height: 90px;
+    background: var(--primary);
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    top: 15%;
+    left: 70%;
+    animation-delay: 14s;
+    animation-duration: 60s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(100px, 100px) rotate(90deg);
+    }
+    50% {
+        transform: translate(50px, 200px) rotate(180deg);
+    }
+    75% {
+        transform: translate(-100px, 100px) rotate(270deg);
+    }
+}
+
+/* ===== НАВИГАЦИЯ ===== */
+.navbar {
+    background: rgba(30, 41, 59, 0.8) !important;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 0;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.8rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link {
+    color: var(--light) !important;
+    font-weight: 500;
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem !important;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.navbar-nav .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--gradient-primary);
+    transition: left 0.3s ease;
+    z-index: -1;
+    border-radius: 10px;
+}
+
+.navbar-nav .nav-link:hover::before {
+    left: 0;
+}
+
+.navbar-nav .nav-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.navbar-text {
+    color: var(--light) !important;
+    font-weight: 500;
+}
+
+/* ===== ГЛАВНЫЙ КОНТЕЙНЕР ===== */
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== ГЕРОЙ СЕКЦИЯ ===== */
+.hero-section {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 4rem 3rem;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    animation: slideUp 1s ease-out;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-primary);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.hero-section h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #fff 0%, #c7d2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-section .lead {
+    font-size: 1.3rem;
+    color: #cbd5e1;
+    margin-bottom: 2rem;
+    font-weight: 300;
+}
+
+/* ===== КАРТОЧКИ ===== */
+.card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    transition: all 0.4s ease;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+
+.card:hover::before {
+    transform: scaleX(1);
+}
+
+.card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.card-header {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+}
+
+.card-title {
+    color: var(--light);
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+/* ===== КАРТОЧКИ ИГР ===== */
+.game-card {
+    height: 100%;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.game-cover {
+    height: 250px;
+    object-fit: cover;
+    transition: all 0.4s ease;
+    filter: brightness(0.9);
+}
+
+.game-card:hover .game-cover {
+    transform: scale(1.1);
+    filter: brightness(1);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+}
+
+.card-text {
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.game-stats {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+/* ===== КНОПКИ ===== */
+.btn {
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: #0da271;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: #dc2626;
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: #d97706;
+}
+
+.btn-outline-primary, .btn-outline-danger, .btn-outline-info {
+    background: transparent;
+    border: 2px solid;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-outline-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.btn-outline-danger:hover {
+    background: var(--danger);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-outline-info {
+    border-color: var(--info);
+    color: var(--info);
+}
+
+.btn-outline-info:hover {
+    background: var(--info);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* ===== ЛАЙКИ ===== */
+.like-btn.liked {
+    background: var(--danger) !important;
+    border-color: var(--danger) !important;
+    color: white !important;
+}
+
+/* ===== ФОРМЫ ===== */
+.form-control {
+    background: rgba(30, 41, 59, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--light);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: var(--primary);
+    color: var(--light);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-label {
+    color: var(--light);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-text {
+    color: #94a3b8;
+}
+
+/* ===== УВЕДОМЛЕНИЯ ===== */
+.alert {
+    border: none;
+    border-radius: 15px;
+    padding: 1rem 1.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-md);
+    animation: slideInRight 0.5s ease-out;
+}
+
+.alert-info {
+    background: rgba(59, 130, 246, 0.2);
+    color: #bfdbfe;
+    border-left: 4px solid var(--info);
+}
+
+/* ===== МОДАЛЬНЫЕ ОКНА ===== */
+.modal-content {
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: var(--shadow-xl);
+    color: var(--light);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+}
+
+.modal-title {
+    color: var(--light);
+    font-weight: 700;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+}
+
+.btn-close {
+    filter: invert(1);
+}
+
+/* ===== КОММЕНТАРИИ ===== */
+.comment {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.comment:hover {
+    background: rgba(15, 23, 42, 0.8);
+    transform: translateX(5px);
+}
+
+.comment .user {
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.comment .timestamp {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.comment .text {
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+/* ===== FOOTER ===== */
+footer {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 4rem;
+    padding: 2rem 0;
+}
+
+/* ===== АНИМАЦИИ ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-section .lead {
+        font-size: 1.1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .shape {
+        display: none; /* Скрываем формы на мобильных для производительности */
+    }
+}
+
+/* ===== ЗАГРУЗКА ===== */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+    border-width: 0.2em;
+}
+
+/* ===== СТАТИСТИКА ===== */
+.display-6 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ===== ХЛЕБНЫЕ КРОШКИ ===== */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary-dark);
+}
+
+.breadcrumb-item.active {
+    color: #94a3b8;
+}
+
+/* ===== ПУСТЫЕ СОСТОЯНИЯ ===== */
+.text-muted {
+    color: #64748b !important;
+}
+
+/* ===== УЛУЧШЕНИЯ ДЛЯ ИГР ===== */
+.game-iframe {
+    width: 100%;
+    height: 600px;
+    border: none;
+    border-radius: 15px;
+    background: white;
+    box-shadow: var(--shadow-xl);
+}
+
+/* ===== ИНПУТ ГРУППЫ ===== */
+.input-group {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.input-group .form-control {
+    border-radius: 12px 0 0 12px;
+}
+
+.input-group .btn {
+    border-radius: 0 12px 12px 0;
+}
+
+/* ===== БЭДЖИ ===== */
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.bg-primary {
+    background: var(--gradient-primary) !important;
+}
+
+.bg-danger {
+    background: var(--danger) !important;
+}
+
+/* ===== ПРОГРЕСС БАР ===== */
+.progress {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: var(--gradient-primary);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}

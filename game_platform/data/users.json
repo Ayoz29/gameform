@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "username": "ayozbek94@gmail.com",
+    "password": "Rti-8mu-nPM-SWL",
+    "created_at": "2025-11-20T08:59:11.735366",
+    "last_login": "2025-11-20T15:17:12.830849"
+  },
+  {
+    "id": 2,
+    "username": "ayobek94",
+    "password": "123456",
+    "created_at": "2025-11-20T13:04:24.951585",
+    "last_login": "2025-11-20T13:04:24.951591"
+  },
+  {
+    "id": 3,
+    "username": "Komil",
+    "password": "123456",
+    "created_at": "2025-11-20T16:28:25.734959",
+    "last_login": "2025-11-20T16:28:25.734965"
+  }
+]

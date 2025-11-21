@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Космический защитник</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 3px solid #00ffff;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            overflow: hidden;
+        }
+        
+        #gameCanvas {
+            background: #000;
+            display: block;
+        }
+        
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .score, .lives {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10;
+        }
+        
+        .title {
+            font-size: 48px;
+            color: #00ffff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ffff;
+            text-align: center;
+        }
+        
+        .subtitle {
+            font-size: 24px;
+            color: #00ff00;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #00ffff;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ff00ff;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        
+        .instructions h3 {
+            color: #ff00ff;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            list-style: none;
+            text-align: left;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            color: #cccccc;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .game-over {
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="score">Очки: <span id="score">0</span></div>
+            <div class="lives">Жизни: <span id="lives">3</span></div>
+        </div>
+        
+        <div id="startScreen" class="screen">
+            <h1 class="title">🌌 КОСМИЧЕСКИЙ ЗАЩИТНИК</h1>
+            <p class="subtitle">Защити галактику от врагов!</p>
+            <button class="btn" onclick="startGame()">🚀 НАЧАТЬ ИГРУ</button>
+            
+            <div class="instructions">
+                <h3>🎯 Управление:</h3>
+                <ul>
+                    <li>🖱️ Двигай мышью - управление кораблем</li>
+                    <li>🖱️ ЛКМ - стрельба</li>
+                    <li>🎯 Уничтожай врагов и собирай бонусы</li>
+                    <li>💥 Избегай столкновений с врагами</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="gameOverScreen" class="screen hidden">
+            <h1 class="title game-over">💀 ИГРА ОКОНЧЕНА</h1>
+            <p class="subtitle">Твой результат: <span id="finalScore">0</span> очков</p>
+            <button class="btn" onclick="restartGame()">🔄 ИГРАТЬ СНОВА</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Игровые переменные
+        let score = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let animationId;
+        
+        // Игрок
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 80,
+            width: 50,
+            height: 60,
+            speed: 8,
+            color: '#00ffff'
+        };
+        
+        // Пули
+        const bullets = [];
+        const bulletSpeed = 10;
+        
+        // Враги
+        const enemies = [];
+        let enemySpawnRate = 60; // кадры между появлением врагов
+        
+        // Бонусы
+        const bonuses = [];
+        let bonusSpawnRate = 300;
+        
+        // Звезды для фона
+        const stars = [];
+        for (let i = 0; i < 100; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 1,
+                speed: Math.random() * 2 + 1
+            });
+        }
+        
+        // Функции игры
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            bullets.length = 0;
+            enemies.length = 0;
+            bonuses.length = 0;
+            updateUI();
+            gameLoop();
+        }
+        
+        function restartGame() {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            startGame();
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            cancelAnimationFrame(animationId);
+        }
+        
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+        
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            
+            // Корпус корабля
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width / 2, player.y);
+            ctx.lineTo(player.x + player.width, player.y + player.height);
+            ctx.lineTo(player.x, player.y + player.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Двигатели
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(player.x + 10, player.y + player.height, 10, 15);
+            ctx.fillRect(player.x + player.width - 20, player.y + player.height, 10, 15);
+        }
+        
+        function drawBullets() {
+            ctx.fillStyle = '#ffff00';
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x, bullet.y, 4, 12);
+            });
+        }
+        
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Глаза врага
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.arc(enemy.x - 8, enemy.y - 5, 3, 0, Math.PI * 2);
+                ctx.arc(enemy.x + 8, enemy.y - 5, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        
+        function drawBonuses() {
+            bonuses.forEach(bonus => {
+                ctx.fillStyle = bonus.color;
+                ctx.beginPath();
+                ctx.arc(bonus.x, bonus.y, bonus.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(bonus.type === 'life' ? '❤️' : '💎', bonus.x, bonus.y + 4);
+            });
+        }
+        
+        function drawStars() {
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        
+        function updateStars() {
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+        }
+        
+        function spawnEnemy() {
+            const radius = Math.random() * 20 + 15;
+            enemies.push({
+                x: Math.random() * (canvas.width - radius * 2) + radius,
+                y: -radius,
+                radius: radius,
+                speed: Math.random() * 3 + 1,
+                color: `hsl(${Math.random() * 360}, 70%, 60%)`
+            });
+        }
+        
+        function spawnBonus() {
+            const types = ['life', 'points'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            bonuses.push({
+                x: Math.random() * (canvas.width - 30) + 15,
+                y: -15,
+                radius: 15,
+                speed: 2,
+                type: type,
+                color: type === 'life' ? '#ff0000' : '#00ff00'
+            });
+        }
+        
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                enemy.y += enemy.speed;
+                
+                // Проверка столкновения с игроком
+                const dx = player.x + player.width / 2 - enemy.x;
+                const dy = player.y + player.height / 2 - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < enemy.radius + player.width / 2) {
+                    lives--;
+                    updateUI();
+                    enemies.splice(i, 1);
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                    continue;
+                }
+                
+                // Удаление врагов за экраном
+                if (enemy.y > canvas.height + enemy.radius) {
+                    enemies.splice(i, 1);
+                }
+            }
+        }
+        
+        function updateBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.y -= bulletSpeed;
+                
+                // Проверка столкновения с врагами
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const dx = bullet.x - enemy.x;
+                    const dy = bullet.y - enemy.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < enemy.radius) {
+                        score += Math.floor(50 - enemy.radius);
+                        bullets.splice(i, 1);
+                        enemies.splice(j, 1);
+                        updateUI();
+                        break;
+                    }
+                }
+                
+                // Удаление пуль за экраном
+                if (bullet.y < 0) {
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+        
+        function updateBonuses() {
+            for (let i = bonuses.length - 1; i >= 0; i--) {
+                const bonus = bonuses[i];
+                bonus.y += bonus.speed;
+                
+                // Проверка столкновения с игроком
+                const dx = player.x + player.width / 2 - bonus.x;
+                const dy = player.y + player.height / 2 - bonus.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < bonus.radius + player.width / 2) {
+                    if (bonus.type === 'life') {
+                        lives++;
+                    } else {
+                        score += 100;
+                    }
+                    updateUI();
+                    bonuses.splice(i, 1);
+                    continue;
+                }
+                
+                // Удаление бонусов за экраном
+                if (bonus.y > canvas.height + bonus.radius) {
+                    bonuses.splice(i, 1);
+                }
+            }
+        }
+        
+        function shoot() {
+            bullets.push({
+                x: player.x + player.width / 2 - 2,
+                y: player.y,
+                width: 4,
+                height: 12
+            });
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawStars();
+            updateStars();
+            
+            drawPlayer();
+            drawBullets();
+            drawEnemies();
+            drawBonuses();
+            
+            updateBullets();
+            updateEnemies();
+            updateBonuses();
+            
+            // Спавн врагов
+            if (Math.random() < 1 / (enemySpawnRate / (1 + score / 1000))) {
+                spawnEnemy();
+            }
+            
+            // Спавн бонусов
+            if (Math.random() < 1 / bonusSpawnRate) {
+                spawnBonus();
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Управление
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            player.x = e.clientX - rect.left - player.width / 2;
+            
+            // Ограничение движения в пределах canvas
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        });
+        
+        canvas.addEventListener('click', () => {
+            if (gameRunning) {
+                shoot();
+            }
+        });
+        
+        // Запуск игры при загрузке
+        window.addEventListener('load', () => {
+            // Игра готова к запуску
+        });
+    </script>
+</body>
+</html>

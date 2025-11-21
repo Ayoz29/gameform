@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Крестики-нолики — Retro</title>
+
+	<!-- Мета-теги для Яндекс Игр -->
+	<meta name="yandex-games" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="theme-color" content="#fbbf24">
+	<meta name="description" content="Классические крестики-нолики с анимациями и умным ИИ (Minimax)">
+
+	<link
+		href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500&family=Rajdhani:wght@400;500&display=swap"
+		rel="stylesheet">
+
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+		}
+
+		:root {
+			--primary-bg: #0f172a;
+			--secondary-bg: #1e293b;
+			--accent-soft: #fde68a;
+			--accent-medium: #fbbf24;
+			--text-primary: #f1f5f9;
+			--text-secondary: #cbd5e1;
+			--border-soft: #334155;
+			--success-soft: #86efac;
+			--grid-bg: #1e293b;
+			--cell-bg: #334155;
+			--shadow-soft: rgba(0, 0, 0, 0.1);
+			--shadow-glow: rgba(251, 191, 36, 0.2);
+		}
+
+		html,
+		body {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+		}
+
+		body {
+			font-family: 'Rajdhani', sans-serif;
+			background: linear-gradient(135deg, var(--primary-bg), #1e293b);
+			color: var(--text-primary);
+			line-height: 1.6;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			touch-action: manipulation;
+			padding: 0;
+		}
+
+		.game-container {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			padding: 10px;
+			max-width: 100%;
+			max-height: 100%;
+			position: relative;
+		}
+
+		.game-wrapper {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			max-width: min(900px, 100%);
+			max-height: min(900px, 100%);
+		}
+
+		.container {
+			background: var(--secondary-bg);
+			border-radius: 16px;
+			padding: min(30px, 4vmin);
+			box-shadow:
+				0 8px 32px rgba(0, 0, 0, 0.3),
+				0 0 0 1px rgba(253, 230, 138, 0.1);
+			border: 1px solid var(--border-soft);
+			position: relative;
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			max-width: 100%;
+			max-height: 100%;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.container::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 3px;
+			background: linear-gradient(90deg,
+					transparent 0%,
+					var(--accent-soft) 20%,
+					var(--accent-medium) 50%,
+					var(--accent-soft) 80%,
+					transparent 100%);
+		}
+
+		header {
+			text-align: center;
+			margin-bottom: min(20px, 3vmin);
+			flex-shrink: 0;
+		}
+
+		header h1 {
+			font-family: 'Orbitron', monospace;
+			font-size: min(2.5rem, 7vmin);
+			font-weight: 500;
+			color: var(--text-primary);
+			margin-bottom: 5px;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			line-height: 1.2;
+		}
+
+		.score-board {
+			display: flex;
+			justify-content: space-around;
+			margin-bottom: min(20px, 3vmin);
+			background: var(--grid-bg);
+			padding: min(15px, 2vmin);
+			border-radius: 12px;
+			border: 1px solid var(--border-soft);
+			position: relative;
+			flex-shrink: 0;
+		}
+
+		.score-board::before {
+			content: '';
+			position: absolute;
+			top: -2px;
+			left: -2px;
+			right: -2px;
+			bottom: -2px;
+			border: 1px solid var(--accent-soft);
+			border-radius: 14px;
+			opacity: 0.3;
+			pointer-events: none;
+		}
+
+		.score-player {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			flex: 1;
+		}
+
+		.score-player:first-child {
+			border-right: 1px solid var(--border-soft);
+		}
+
+		.score-label {
+			font-size: min(1rem, 3vmin);
+			color: var(--text-secondary);
+			margin-bottom: 5px;
+			font-weight: 500;
+			letter-spacing: 1px;
+			line-height: 1.2;
+		}
+
+		.score {
+			font-family: 'Orbitron', monospace;
+			font-size: min(2.2rem, 6vmin);
+			font-weight: 400;
+			color: var(--accent-medium);
+			text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+			line-height: 1.2;
+		}
+
+		.player-nick {
+			font-size: min(0.9rem, 2.5vmin);
+			color: var(--accent-soft);
+			margin-top: 4px;
+			max-width: 120px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.nick-edit-btn {
+			background: none;
+			border: none;
+			color: var(--accent-soft);
+			font-size: min(0.8rem, 2vmin);
+			cursor: pointer;
+			margin-top: 2px;
+			opacity: 0.7;
+			transition: opacity 0.25s ease;
+		}
+
+		.nick-edit-btn:hover {
+			opacity: 1;
+		}
+
+		.game-content {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			overflow: hidden;
+		}
+
+		.selection-screen {
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			height: 100%;
+		}
+
+		.selection-title {
+			font-family: 'Orbitron', monospace;
+			font-size: min(1.6rem, 5vmin);
+			font-weight: 500;
+			color: var(--text-primary);
+			margin-bottom: min(20px, 3vmin);
+			letter-spacing: 1px;
+			line-height: 1.2;
+		}
+
+		.selection-buttons {
+			display: flex;
+			gap: min(12px, 2vmin);
+			margin-bottom: min(20px, 3vmin);
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		.selection-btn {
+			background: var(--grid-bg);
+			border: 2px solid var(--border-soft);
+			padding: min(12px, 2vmin) min(18px, 3vmin);
+			font-size: min(1rem, 3.5vmin);
+			border-radius: 10px;
+			cursor: pointer;
+			transition: all 0.25s ease;
+			font-weight: 500;
+			color: var(--text-primary);
+			font-family: 'Rajdhani', sans-serif;
+			letter-spacing: 1px;
+			position: relative;
+			overflow: hidden;
+			min-width: 140px;
+		}
+
+		.selection-btn:hover {
+			border-color: var(--accent-soft);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 20px var(--shadow-glow);
+		}
+
+		.x-btn {
+			color: var(--accent-soft);
+		}
+
+		.o-btn {
+			color: var(--accent-soft);
+		}
+
+		.mode-btn {
+			color: var(--text-primary);
+		}
+
+		.selection-info {
+			color: var(--text-secondary);
+			font-size: min(1rem, 3vmin);
+			letter-spacing: 0.5px;
+			line-height: 1.2;
+		}
+
+		.game-screen {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+			justify-content: space-between;
+		}
+
+		.game-info {
+			background: var(--grid-bg);
+			padding: min(15px, 2vmin);
+			border-radius: 12px;
+			margin-bottom: min(15px, 2vmin);
+			border: 1px solid var(--border-soft);
+			position: relative;
+			flex-shrink: 0;
+		}
+
+		.current-player {
+			font-size: min(1.2rem, 4vmin);
+			color: var(--text-primary);
+			margin-bottom: 5px;
+			font-weight: 500;
+			letter-spacing: 0.5px;
+			line-height: 1.2;
+		}
+
+		#current-player-mark {
+			color: var(--accent-medium);
+			font-weight: 600;
+			font-family: 'Orbitron', monospace;
+		}
+
+		.status {
+			font-size: min(1.1rem, 3.5vmin);
+			color: var(--text-secondary);
+			font-weight: 400;
+			line-height: 1.2;
+		}
+
+		.game-board-container {
+			flex: 1;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 0;
+		}
+
+		.game-board {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			grid-gap: min(10px, 1.5vmin);
+			background: var(--grid-bg);
+			padding: min(18px, 3vmin);
+			border-radius: 12px;
+			border: 1px solid var(--border-soft);
+			position: relative;
+			width: min(70vmin, 420px);
+			max-width: 100%;
+			aspect-ratio: 1 / 1;
+			box-sizing: border-box;
+		}
+
+		.game-board::before {
+			content: '';
+			position: absolute;
+			top: -2px;
+			left: -2px;
+			right: -2px;
+			bottom: -2px;
+			border: 1px solid var(--accent-soft);
+			border-radius: 14px;
+			opacity: 0.2;
+			pointer-events: none;
+		}
+
+		.cell {
+			background: var(--cell-bg);
+			border: 2px solid var(--border-soft);
+			border-radius: 8px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			transition: all 0.25s ease;
+			font-weight: 400;
+			font-family: 'Orbitron', monospace;
+			position: relative;
+			color: transparent;
+			overflow: hidden;
+			user-select: none;
+			font-size: clamp(28px, 8vmin, 96px);
+			line-height: 1;
+		}
+
+		.cell:hover {
+			background: #475569;
+			border-color: var(--accent-soft);
+			transform: scale(1.02);
+			box-shadow: 0 0 15px var(--shadow-glow);
+		}
+
+		.cell.x::before,
+		.cell.o::before {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 100%;
+			height: 100%;
+			max-width: 100%;
+			max-height: 100%;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			font-size: inherit;
+		}
+
+		.cell.x::before {
+			content: "X";
+			color: var(--accent-medium);
+			text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+			animation: gentle-appear-x 0.35s ease-out;
+		}
+
+		.cell.o::before {
+			content: "O";
+			color: var(--accent-medium);
+			text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+			animation: gentle-appear-o 0.35s ease-out;
+		}
+
+		@keyframes gentle-appear-x {
+			0% {
+				opacity: 0;
+				transform: scale(0.85) rotate(-90deg);
+			}
+
+			100% {
+				opacity: 1;
+				transform: scale(1) rotate(0deg);
+			}
+		}
+
+		@keyframes gentle-appear-o {
+			0% {
+				opacity: 0;
+				transform: scale(0.85);
+			}
+
+			50% {
+				transform: scale(1.08);
+			}
+
+			100% {
+				opacity: 1;
+				transform: scale(1);
+			}
+		}
+
+		.cell.win {
+			background: linear-gradient(135deg, #1e40af, #3b82f6);
+			border-color: var(--accent-medium);
+			animation: soft-win-pulse 1.6s ease-in-out infinite;
+			z-index: 10;
+		}
+
+		.cell.win::before {
+			color: white;
+		}
+
+		@keyframes soft-win-pulse {
+
+			0%,
+			100% {
+				transform: scale(1);
+				box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+			}
+
+			50% {
+				transform: scale(1.04);
+				box-shadow: 0 0 30px rgba(56, 189, 248, 0.45);
+			}
+		}
+
+		.cell.lose {
+			animation: fall-down 1.5s ease-in forwards;
+			position: relative;
+		}
+
+		@keyframes fall-down {
+			0% {
+				transform: translateY(0) rotate(0deg);
+				opacity: 1;
+			}
+
+			50% {
+				transform: translateY(50px) rotate(180deg);
+				opacity: 0.7;
+			}
+
+			100% {
+				transform: translateY(100vh) rotate(360deg);
+				opacity: 0;
+			}
+		}
+
+		.controls {
+			display: flex;
+			gap: min(12px, 2vmin);
+			margin-top: min(15px, 2vmin);
+			flex-shrink: 0;
+		}
+
+		#restart-btn,
+		#change-side-btn {
+			flex: 1;
+			background: var(--grid-bg);
+			color: var(--text-primary);
+			border: 2px solid var(--border-soft);
+			padding: min(12px, 2vmin) min(16px, 3vmin);
+			font-size: min(1rem, 3vmin);
+			border-radius: 8px;
+			cursor: pointer;
+			transition: all 0.25s ease;
+			font-weight: 500;
+			font-family: 'Rajdhani', sans-serif;
+			letter-spacing: 0.5px;
+			line-height: 1.2;
+		}
+
+		#restart-btn:hover,
+		#change-side-btn:hover {
+			background: #475569;
+			border-color: var(--accent-soft);
+			transform: translateY(-1px);
+			box-shadow: 0 4px 15px var(--shadow-glow);
+		}
+
+		.retro-decoration {
+			position: absolute;
+			width: min(60px, 8vmin);
+			height: 2px;
+			background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
+			opacity: 0.5;
+		}
+
+		.decoration-1 {
+			top: min(20px, 3vmin);
+			left: min(20px, 3vmin);
+		}
+
+		.decoration-2 {
+			top: min(20px, 3vmin);
+			right: min(20px, 3vmin);
+		}
+
+		.decoration-3 {
+			bottom: min(20px, 3vmin);
+			left: min(20px, 3vmin);
+		}
+
+		.decoration-4 {
+			bottom: min(20px, 3vmin);
+			right: min(20px, 3vmin);
+		}
+
+		.falling-area {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			z-index: 1000;
+		}
+
+		.falling-symbol {
+			position: absolute;
+			font-family: 'Orbitron', monospace;
+			font-size: min(2rem, 6vmin);
+			color: var(--accent-medium);
+			text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+			animation: falling 3s linear forwards;
+		}
+
+		@keyframes falling {
+			0% {
+				transform: translateY(-100px) rotate(0deg);
+				opacity: 1;
+			}
+
+			100% {
+				transform: translateY(100vh) rotate(360deg);
+				opacity: 0;
+			}
+		}
+
+		.language-selector {
+			position: absolute;
+			top: min(12px, 2vmin);
+			right: min(12px, 2vmin);
+			z-index: 10;
+		}
+
+		.language-btn {
+			background: var(--grid-bg);
+			color: var(--text-primary);
+			border: 1px solid var(--border-soft);
+			padding: min(8px, 1.5vmin) min(12px, 2vmin);
+			border-radius: 6px;
+			cursor: pointer;
+			font-family: 'Rajdhani', sans-serif;
+			font-weight: 500;
+			transition: all 0.25s ease;
+			font-size: min(0.9rem, 2.5vmin);
+		}
+
+		.language-btn:hover {
+			background: #475569;
+			border-color: var(--accent-soft);
+		}
+
+		.selection-screen,
+		.game-screen {
+			animation: fade-in-up 0.45s ease-out;
+		}
+
+		@keyframes fade-in-up {
+			from {
+				opacity: 0;
+				transform: translateY(12px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.loading-screen {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: var(--primary-bg);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 9999;
+			flex-direction: column;
+		}
+
+		.loader {
+			width: min(50px, 8vmin);
+			height: min(50px, 8vmin);
+			border: min(5px, 1vmin) solid var(--border-soft);
+			border-top: min(5px, 1vmin) solid var(--accent-medium);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			margin-bottom: min(20px, 3vmin);
+		}
+
+		@keyframes spin {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		.loading-text {
+			color: var(--text-secondary);
+			font-size: min(1.1rem, 3.5vmin);
+		}
+
+		.pause-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(15, 23, 42, 0.92);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 9998;
+			flex-direction: column;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.25s ease;
+		}
+
+		.pause-overlay.active {
+			opacity: 1;
+			pointer-events: all;
+		}
+
+		.pause-text {
+			font-family: 'Orbitron', monospace;
+			font-size: min(2rem, 6vmin);
+			color: var(--accent-medium);
+			margin-bottom: min(20px, 3vmin);
+			text-align: center;
+		}
+
+		.resume-btn {
+			background: var(--grid-bg);
+			color: var(--text-primary);
+			border: 2px solid var(--accent-soft);
+			padding: min(12px, 2vmin) min(24px, 4vmin);
+			font-size: min(1.1rem, 3.5vmin);
+			border-radius: 8px;
+			cursor: pointer;
+			transition: all 0.25s ease;
+			font-weight: 500;
+			font-family: 'Rajdhani', sans-serif;
+		}
+
+		.resume-btn:hover {
+			background: var(--accent-soft);
+			color: var(--primary-bg);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 15px var(--shadow-glow);
+		}
+
+		.modal-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(15, 23, 42, 0.95);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 10000;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.3s ease;
+		}
+
+		.modal-overlay.active {
+			opacity: 1;
+			pointer-events: all;
+		}
+
+		.modal {
+			background: var(--secondary-bg);
+			border-radius: 16px;
+			padding: min(30px, 4vmin);
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+			border: 1px solid var(--accent-soft);
+			max-width: min(500px, 90vw);
+			width: 100%;
+			text-align: center;
+		}
+
+		.modal-title {
+			font-family: 'Orbitron', monospace;
+			font-size: min(1.8rem, 5vmin);
+			color: var(--accent-medium);
+			margin-bottom: min(20px, 3vmin);
+		}
+
+		.modal-input {
+			width: 100%;
+			padding: min(15px, 2vmin);
+			font-size: min(1.1rem, 3.5vmin);
+			background: var(--grid-bg);
+			border: 2px solid var(--border-soft);
+			border-radius: 8px;
+			color: var(--text-primary);
+			margin-bottom: min(20px, 3vmin);
+			font-family: 'Rajdhani', sans-serif;
+			text-align: center;
+		}
+
+		.modal-input:focus {
+			outline: none;
+			border-color: var(--accent-soft);
+		}
+
+		.modal-buttons {
+			display: flex;
+			gap: min(12px, 2vmin);
+			justify-content: center;
+		}
+
+		.modal-btn {
+			padding: min(12px, 2vmin) min(24px, 4vmin);
+			font-size: min(1rem, 3vmin);
+			border-radius: 8px;
+			cursor: pointer;
+			border: 2px solid var(--border-soft);
+			background: var(--grid-bg);
+			color: var(--text-primary);
+			font-family: 'Rajdhani', sans-serif;
+			font-weight: 500;
+			transition: all 0.25s ease;
+			flex: 1;
+			max-width: 140px;
+		}
+
+		.modal-btn.primary {
+			background: var(--accent-medium);
+			color: var(--primary-bg);
+			border-color: var(--accent-medium);
+		}
+
+		.modal-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 15px var(--shadow-glow);
+		}
+
+		.error-message {
+			color: #f87171;
+			font-size: min(0.9rem, 2.5vmin);
+			margin-top: -15px;
+			margin-bottom: 15px;
+			min-height: 20px;
+		}
+
+		.player-select-buttons {
+			display: flex;
+			gap: min(10px, 2vmin);
+			margin-bottom: min(15px, 2vmin);
+			justify-content: center;
+		}
+
+		.player-select-btn {
+			padding: min(8px, 1.5vmin) min(16px, 3vmin);
+			font-size: min(0.9rem, 2.5vmin);
+			border-radius: 6px;
+			cursor: pointer;
+			border: 2px solid var(--border-soft);
+			background: var(--grid-bg);
+			color: var(--text-primary);
+			font-family: 'Rajdhani', sans-serif;
+			transition: all 0.25s ease;
+		}
+
+		.player-select-btn.active {
+			background: var(--accent-medium);
+			color: var(--primary-bg);
+			border-color: var(--accent-medium);
+		}
+
+		@media (max-width: 480px) {
+			.selection-buttons {
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.controls {
+				flex-direction: column;
+			}
+
+			.selection-btn {
+				width: 100%;
+				max-width: 260px;
+			}
+
+			.modal-buttons {
+				flex-direction: column;
+			}
+
+			.modal-btn {
+				max-width: none;
+			}
+
+			.player-select-buttons {
+				flex-direction: column;
+			}
+		}
+
+		@media (max-height: 500px) {
+			.container {
+				padding: 12px;
+			}
+
+			header {
+				margin-bottom: 8px;
+			}
+
+			.score-board,
+			.game-info {
+				margin-bottom: 8px;
+				padding: 8px;
+			}
+
+			.cell {
+				font-size: clamp(20px, 7vmin, 72px);
+			}
+		}
+
+		.no-scroll {
+			overflow: hidden;
+		}
+	</style>
+</head>
+
+<body class="no-scroll">
+	<!-- Загрузочный экран -->
+	<div class="loading-screen" id="loading-screen">
+		<div class="loader"></div>
+		<div class="loading-text" id="loading-text">Загрузка игры...</div>
+	</div>
+
+	<!-- Модальное окно для ввода ника -->
+	<div class="modal-overlay" id="nickname-modal">
+		<div class="modal">
+			<div class="modal-title" id="modal-title">ВВЕДИТЕ НИК ДЛЯ ИГРОКА 1</div>
+			<div class="player-select-buttons" id="player-select-buttons">
+				<button class="player-select-btn active" data-player="player1">ИГРОК 1</button>
+				<button class="player-select-btn" data-player="player2">ИГРОК 2</button>
+			</div>
+			<input type="text" class="modal-input" id="nickname-input" placeholder="Введите уникальный ник"
+				maxlength="15">
+			<div class="error-message" id="nickname-error"></div>
+			<div class="modal-buttons">
+				<button class="modal-btn" id="cancel-nickname">ОТМЕНА</button>
+				<button class="modal-btn primary" id="save-nickname">СОХРАНИТЬ</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Оверлей паузы -->
+	<div class="pause-overlay" id="pause-overlay">
+		<div class="pause-text" id="pause-text">ИГРА НА ПАУЗЕ</div>
+		<button class="resume-btn" id="resume-btn">ПРОДОЛЖИТЬ</button>
+	</div>
+
+	<!-- Падающие символы -->
+	<div class="falling-area" id="falling-area"></div>
+
+	<div class="game-container">
+		<div class="game-wrapper">
+			<div class="container">
+				<div class="language-selector">
+					<button class="language-btn" id="language-btn">EN</button>
+				</div>
+
+				<div class="retro-decoration decoration-1"></div>
+				<div class="retro-decoration decoration-2"></div>
+				<div class="retro-decoration decoration-3"></div>
+				<div class="retro-decoration decoration-4"></div>
+
+				<header>
+					<h1 id="game-title">КРЕСТИКИ-НОЛИКИ</h1>
+				</header>
+
+				<div class="score-board">
+					<div class="score-player">
+						<div class="score-label" id="player1-label">ИГРОК 1</div>
+						<div class="score" id="player1-score">0</div>
+						<div class="player-nick" id="player1-nick">Игрок 1</div>
+						<button class="nick-edit-btn" data-player="player1">✎</button>
+					</div>
+					<div class="score-player">
+						<div class="score-label" id="player2-label">ИГРОК 2</div>
+						<div class="score" id="player2-score">0</div>
+						<div class="player-nick" id="player2-nick">Игрок 2</div>
+						<button class="nick-edit-btn" data-player="player2">✎</button>
+					</div>
+				</div>
+
+				<div class="game-content">
+					<div class="selection-screen" id="selection-screen">
+						<div class="selection-title" id="select-side-title">ВЫБЕРИТЕ РЕЖИМ</div>
+
+						<div class="selection-buttons" id="mode-buttons">
+							<button class="selection-btn mode-btn" id="mode-1p">1 ИГРОК (ПРОТИВ ИИ)</button>
+							<button class="selection-btn mode-btn" id="mode-2p">2 ИГРОКА (НА ОДНОМ УСТРОЙСТВЕ)</button>
+						</div>
+
+						<div class="selection-buttons" id="side-buttons" style="margin-top: 12px;">
+							<button id="select-x" class="selection-btn x-btn">ИГРАТЬ ЗА X</button>
+							<button id="select-o" class="selection-btn o-btn">ИГРАТЬ ЗА O</button>
+						</div>
+
+						<div class="selection-buttons" style="margin-top: 12px;">
+							<button id="reset-stats" class="selection-btn">СБРОСИТЬ СТАТИСТИКУ</button>
+						</div>
+
+						<p class="selection-info" id="x-first-info">X ХОДИТ ПЕРВЫМ</p>
+					</div>
+
+					<div class="game-screen" id="game-screen" style="display: none;">
+						<div class="game-info">
+							<div class="current-player">
+								<span id="current-turn-text">СЕЙЧАС ХОДИТ:</span>
+								<span id="current-player-mark">X</span>
+							</div>
+							<div class="status" id="status">ИГРА НАЧАЛАСЬ</div>
+						</div>
+
+						<div class="game-board-container">
+							<div class="game-board" id="game-board" role="grid" aria-label="Tic Tac Toe board">
+								<div class="cell" data-index="0" role="button" aria-label="cell 0"></div>
+								<div class="cell" data-index="1" role="button" aria-label="cell 1"></div>
+								<div class="cell" data-index="2" role="button" aria-label="cell 2"></div>
+								<div class="cell" data-index="3" role="button" aria-label="cell 3"></div>
+								<div class="cell" data-index="4" role="button" aria-label="cell 4"></div>
+								<div class="cell" data-index="5" role="button" aria-label="cell 5"></div>
+								<div class="cell" data-index="6" role="button" aria-label="cell 6"></div>
+								<div class="cell" data-index="7" role="button" aria-label="cell 7"></div>
+								<div class="cell" data-index="8" role="button" aria-label="cell 8"></div>
+							</div>
+						</div>
+
+						<div class="controls">
+							<button id="restart-btn">НОВАЯ ИГРА</button>
+							<button id="change-side-btn">СМЕНИТЬ СТОРОНУ</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// -------------------- Game state --------------------
+		const gameState = {
+			board: ['', '', '', '', '', '', '', '', ''],
+			currentPlayer: 'X',
+			gameActive: true,
+			playerSide: null,
+			mode: null,
+			scores: {
+				player1: 0,
+				player2: 0,
+				draws: 0
+			},
+			totalStats: {
+				player1Wins: 0,
+				player2Wins: 0,
+				computerWins: 0,
+				draws: 0
+			},
+			winningConditions: [
+				[0, 1, 2], [3, 4, 5], [6, 7, 8],
+				[0, 3, 6], [1, 4, 7], [2, 5, 8],
+				[0, 4, 8], [2, 4, 6]
+			],
+			language: 'ru',
+			isPaused: false,
+			computerMoveTimeout: null,
+			yaGames: null,
+			players: {
+				player1: { id: null, nickname: 'Игрок 1' },
+				player2: { id: null, nickname: 'Игрок 2' }
+			},
+			currentEditingPlayer: 'player1'
+		};
+
+		// -------------------- Database --------------------
+		class GameDatabase {
+			constructor() {
+				this.db = null;
+				this.dbName = 'TicTacToeDB';
+				this.version = 2;
+			}
+
+			async init() {
+				return new Promise((resolve, reject) => {
+					const request = indexedDB.open(this.dbName, this.version);
+
+					request.onerror = () => reject(request.error);
+					request.onsuccess = () => {
+						this.db = request.result;
+						resolve();
+					};
+
+					request.onupgradeneeded = (event) => {
+						const db = event.target.result;
+
+						// Хранилище для игроков
+						if (!db.objectStoreNames.contains('players')) {
+							const store = db.createObjectStore('players', { keyPath: 'id', autoIncrement: true });
+							store.createIndex('nickname', 'nickname', { unique: true });
+						}
+
+						// Хранилище для текущих игроков
+						if (!db.objectStoreNames.contains('currentPlayers')) {
+							db.createObjectStore('currentPlayers', { keyPath: 'playerKey' });
+						}
+
+						// Хранилище для статистики
+						if (!db.objectStoreNames.contains('stats')) {
+							const statsStore = db.createObjectStore('stats', { keyPath: 'id' });
+						}
+
+						// Хранилище для текущих очков
+						if (!db.objectStoreNames.contains('currentScores')) {
+							db.createObjectStore('currentScores', { keyPath: 'id' });
+						}
+					};
+				});
+			}
+
+			// Сохранение текущих игроков
+			async saveCurrentPlayers(players) {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['currentPlayers'], 'readwrite');
+					const store = transaction.objectStore('currentPlayers');
+
+					store.put({ playerKey: 'player1', ...players.player1 });
+					store.put({ playerKey: 'player2', ...players.player2 });
+
+					transaction.oncomplete = () => resolve();
+					transaction.onerror = () => reject(transaction.error);
+				});
+			}
+
+			// Загрузка текущих игроков
+			async loadCurrentPlayers() {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['currentPlayers'], 'readonly');
+					const store = transaction.objectStore('currentPlayers');
+
+					const player1Request = store.get('player1');
+					const player2Request = store.get('player2');
+
+					const players = {
+						player1: { id: null, nickname: 'Игрок 1' },
+						player2: { id: null, nickname: 'Игрок 2' }
+					};
+
+					player1Request.onsuccess = () => {
+						if (player1Request.result) {
+							const { playerKey, ...playerData } = player1Request.result;
+							players.player1 = playerData;
+						}
+					};
+
+					player2Request.onsuccess = () => {
+						if (player2Request.result) {
+							const { playerKey, ...playerData } = player2Request.result;
+							players.player2 = playerData;
+						}
+					};
+
+					transaction.oncomplete = () => resolve(players);
+					transaction.onerror = () => reject(transaction.error);
+				});
+			}
+
+			// Сохранение статистики
+			async saveStats(stats) {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['stats'], 'readwrite');
+					const store = transaction.objectStore('stats');
+
+					store.put({ id: 'totalStats', ...stats });
+
+					transaction.oncomplete = () => resolve();
+					transaction.onerror = () => reject(transaction.error);
+				});
+			}
+
+			// Загрузка статистики
+			async loadStats() {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['stats'], 'readonly');
+					const store = transaction.objectStore('stats');
+					const request = store.get('totalStats');
+
+					request.onsuccess = () => {
+						resolve(request.result || {
+							player1Wins: 0,
+							player2Wins: 0,
+							computerWins: 0,
+							draws: 0
+						});
+					};
+					request.onerror = () => reject(request.error);
+				});
+			}
+
+			// Сохранение текущих очков
+			async saveCurrentScores(scores) {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['currentScores'], 'readwrite');
+					const store = transaction.objectStore('currentScores');
+
+					store.put({ id: 'scores', ...scores });
+
+					transaction.oncomplete = () => resolve();
+					transaction.onerror = () => reject(transaction.error);
+				});
+			}
+
+			// Загрузка текущих очков
+			async loadCurrentScores() {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['currentScores'], 'readonly');
+					const store = transaction.objectStore('currentScores');
+					const request = store.get('scores');
+
+					request.onsuccess = () => {
+						resolve(request.result || { player1: 0, player2: 0, draws: 0 });
+					};
+					request.onerror = () => reject(request.error);
+				});
+			}
+
+			// Сброс всей статистики
+			async resetAllStats() {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['stats', 'currentScores'], 'readwrite');
+					const statsStore = transaction.objectStore('stats');
+					const scoresStore = transaction.objectStore('currentScores');
+
+					statsStore.put({
+						id: 'totalStats',
+						player1Wins: 0,
+						player2Wins: 0,
+						computerWins: 0,
+						draws: 0
+					});
+
+					scoresStore.put({
+						id: 'scores',
+						player1: 0,
+						player2: 0,
+						draws: 0
+					});
+
+					transaction.oncomplete = () => resolve();
+					transaction.onerror = () => reject(transaction.error);
+				});
+			}
+		}
+
+		const gameDB = new GameDatabase();
+
+		// -------------------- Translations --------------------
+		const translations = {
+			ru: {
+				gameTitle: "КРЕСТИКИ-НОЛИКИ",
+				player1Label: "ИГРОК 1",
+				player2Label: "ИГРОК 2",
+				computerLabel: "КОМПЬЮТЕР",
+				selectSideTitle: "ВЫБЕРИТЕ СТОРОНУ",
+				chooseModeTitle: "ВЫБЕРИТЕ РЕЖИМ",
+				playAsX: "ИГРАТЬ ЗА X",
+				playAsO: "ИГРАТЬ ЗА O",
+				xFirstInfo: "X ХОДИТ ПЕРВЫМ",
+				currentTurnText: "СЕЙЧАС ХОДИТ:",
+				gameStarted: "ИГРА НАЧАЛАСЬ",
+				yourTurn: "ВАШ ХОД",
+				computerThinking: "КОМПЬЮТЕР ДУМАЕТ...",
+				draw: "НИЧЬЯ!",
+				win: "ПОБЕДА!",
+				computerWin: "ПОБЕДА КОМПЬЮТЕРА",
+				newGame: "НОВАЯ ИГРА",
+				changeSide: "СМЕНИТЬ СТОРОНУ",
+				loadingText: "Загрузка игры...",
+				pauseText: "ИГРА НА ПАУЗЕ",
+				resumeBtn: "ПРОДОЛЖИТЬ",
+				mode1p: "1 ИГРОК (ПРОТИВ ИИ)",
+				mode2p: "2 ИГРОКА (НА ОДНОМ УСТРОЙСТВЕ)",
+				enterNick: "ВВЕДИТЕ НИК ДЛЯ",
+				nickExists: "Этот ник уже занят!",
+				nickEmpty: "Введите ник!",
+				nickTooLong: "Слишком длинный ник!",
+				player1Win: "ПОБЕДА ИГРОКА 1!",
+				player2Win: "ПОБЕДА ИГРОКА 2!",
+				resetStats: "СБРОСИТЬ СТАТИСТИКУ",
+				statsReset: "Статистика сброшена!"
+			},
+			en: {
+				gameTitle: "TIC-TAC-TOE",
+				player1Label: "PLAYER 1",
+				player2Label: "PLAYER 2",
+				computerLabel: "COMPUTER",
+				selectSideTitle: "CHOOSE YOUR SIDE",
+				chooseModeTitle: "CHOOSE MODE",
+				playAsX: "PLAY AS X",
+				playAsO: "PLAY AS O",
+				xFirstInfo: "X GOES FIRST",
+				currentTurnText: "CURRENT TURN:",
+				gameStarted: "GAME STARTED",
+				yourTurn: "YOUR TURN",
+				computerThinking: "COMPUTER THINKING...",
+				draw: "DRAW!",
+				win: "VICTORY!",
+				computerWin: "COMPUTER WINS",
+				newGame: "NEW GAME",
+				changeSide: "CHANGE SIDE",
+				loadingText: "Loading game...",
+				pauseText: "GAME PAUSED",
+				resumeBtn: "RESUME",
+				mode1p: "1 PLAYER (VS AI)",
+				mode2p: "2 PLAYERS (ON ONE DEVICE)",
+				enterNick: "ENTER NICKNAME FOR",
+				nickExists: "This nickname is already taken!",
+				nickEmpty: "Enter nickname!",
+				nickTooLong: "Nickname too long!",
+				player1Win: "PLAYER 1 WINS!",
+				player2Win: "PLAYER 2 WINS!",
+				resetStats: "RESET STATISTICS",
+				statsReset: "Statistics reset!"
+			}
+		};
+
+		// -------------------- DOM elements --------------------
+		const selectionScreen = document.getElementById('selection-screen');
+		const gameScreen = document.getElementById('game-screen');
+		const cells = document.querySelectorAll('.cell');
+		const currentPlayerElement = document.getElementById('current-player-mark');
+		const statusElement = document.getElementById('status');
+		const restartButton = document.getElementById('restart-btn');
+		const changeSideButton = document.getElementById('change-side-btn');
+		const selectXButton = document.getElementById('select-x');
+		const selectOButton = document.getElementById('select-o');
+		const player1ScoreElement = document.getElementById('player1-score');
+		const player2ScoreElement = document.getElementById('player2-score');
+		const player1LabelElement = document.getElementById('player1-label');
+		const player2LabelElement = document.getElementById('player2-label');
+		const player1NickElement = document.getElementById('player1-nick');
+		const player2NickElement = document.getElementById('player2-nick');
+		const fallingArea = document.getElementById('falling-area');
+		const languageBtn = document.getElementById('language-btn');
+		const loadingScreen = document.getElementById('loading-screen');
+		const loadingText = document.getElementById('loading-text');
+		const pauseOverlay = document.getElementById('pause-overlay');
+		const pauseText = document.getElementById('pause-text');
+		const resumeBtn = document.getElementById('resume-btn');
+		const mode1pBtn = document.getElementById('mode-1p');
+		const mode2pBtn = document.getElementById('mode-2p');
+		const selectSideTitle = document.getElementById('select-side-title');
+		const nicknameModal = document.getElementById('nickname-modal');
+		const nicknameInput = document.getElementById('nickname-input');
+		const nicknameError = document.getElementById('nickname-error');
+		const saveNicknameBtn = document.getElementById('save-nickname');
+		const cancelNicknameBtn = document.getElementById('cancel-nickname');
+		const modalTitle = document.getElementById('modal-title');
+		const playerSelectButtons = document.getElementById('player-select-buttons');
+		const resetStatsBtn = document.getElementById('reset-stats');
+		const nickEditButtons = document.querySelectorAll('.nick-edit-btn');
+
+		// -------------------- Audio --------------------
+		class RetroSounds {
+			constructor() {
+				try {
+					this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+				} catch (e) {
+					this.audioContext = null;
+				}
+				this.enabled = !!this.audioContext;
+			}
+
+			playTone(freq, duration = 0.12, type = 'sine', volume = 0.06, when = 0) {
+				if (!this.enabled) return;
+				const ctx = this.audioContext;
+				const o = ctx.createOscillator();
+				const g = ctx.createGain();
+				o.type = type;
+				o.frequency.value = freq;
+				g.gain.value = 0;
+				o.connect(g);
+				g.connect(ctx.destination);
+				const now = ctx.currentTime + when;
+				g.gain.linearRampToValueAtTime(volume, now + 0.005);
+				o.start(now);
+				g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+				o.stop(now + duration + 0.02);
+			}
+
+			click() { this.playTone(800, 0.07, 'sine', 0.06); }
+			place() { this.playTone(1100, 0.12, 'sine', 0.08); }
+			win() {
+				[523, 659, 784, 1047].forEach((f, i) => this.playTone(f, 0.18, 'sine', 0.07, i * 0.11));
+			}
+			lose() {
+				[392, 330, 262].forEach((f, i) => this.playTone(f, 0.2, 'sine', 0.06, i * 0.12));
+			}
+			draw() { [392, 494, 587].forEach((f, i) => this.playTone(f, 0.14, 'sine', 0.05, i * 0.09)); }
+			falling() { this.playTone(200, 0.35, 'sawtooth', 0.04); }
+		}
+		const sounds = new RetroSounds();
+
+		// -------------------- Utility functions --------------------
+		function t(key) {
+			const lang = gameState.language;
+			return translations[lang][key] ?? translations['ru'][key] ?? key;
+		}
+
+		function updateLanguageTexts() {
+			document.getElementById('game-title').textContent = t('gameTitle');
+			updateScoreLabels();
+			selectSideTitle.textContent = t('chooseModeTitle');
+			mode1pBtn.textContent = t('mode1p');
+			mode2pBtn.textContent = t('mode2p');
+			selectXButton.textContent = t('playAsX');
+			selectOButton.textContent = t('playAsO');
+			resetStatsBtn.textContent = t('resetStats');
+			document.getElementById('x-first-info').textContent = t('xFirstInfo');
+			document.getElementById('current-turn-text').textContent = t('currentTurnText');
+			restartButton.textContent = t('newGame');
+			changeSideButton.textContent = t('changeSide');
+			loadingText.textContent = t('loadingText');
+			pauseText.textContent = t('pauseText');
+			resumeBtn.textContent = t('resumeBtn');
+			updateModalTitle();
+		}
+
+		function updateModalTitle() {
+			const playerName = gameState.currentEditingPlayer === 'player1' ? t('player1Label') : t('player2Label');
+			modalTitle.textContent = `${t('enterNick')} ${playerName}`;
+		}
+
+		function updateScoreLabels() {
+			if (gameState.mode === '2p') {
+				player1LabelElement.textContent = t('player1Label');
+				player2LabelElement.textContent = t('player2Label');
+			} else {
+				player1LabelElement.textContent = t('player1Label');
+				player2LabelElement.textContent = t('computerLabel');
+			}
+		}
+
+		function updatePlayerNicks() {
+			player1NickElement.textContent = gameState.players.player1.nickname;
+			player2NickElement.textContent = gameState.mode === '2p' ?
+				gameState.players.player2.nickname : t('computerLabel');
+		}
+
+		// -------------------- Modal functions --------------------
+		function showNicknameModal(playerKey = 'player1') {
+			gameState.currentEditingPlayer = playerKey;
+			nicknameInput.value = gameState.players[playerKey].nickname;
+			nicknameError.textContent = '';
+			updateModalTitle();
+			updatePlayerSelectButtons();
+			nicknameModal.classList.add('active');
+			nicknameInput.focus();
+			nicknameInput.select();
+		}
+
+		function hideNicknameModal() {
+			nicknameModal.classList.remove('active');
+		}
+
+		function updatePlayerSelectButtons() {
+			const buttons = playerSelectButtons.querySelectorAll('.player-select-btn');
+			buttons.forEach(btn => {
+				if (btn.dataset.player === gameState.currentEditingPlayer) {
+					btn.classList.add('active');
+				} else {
+					btn.classList.remove('active');
+				}
+			});
+		}
+
+		async function saveNickname() {
+			const nickname = nicknameInput.value.trim();
+
+			if (!nickname) {
+				nicknameError.textContent = t('nickEmpty');
+				return;
+			}
+
+			if (nickname.length > 15) {
+				nicknameError.textContent = t('nickTooLong');
+				return;
+			}
+
+			// Сохраняем ник
+			gameState.players[gameState.currentEditingPlayer].nickname = nickname;
+
+			// Сохраняем в базу
+			await gameDB.saveCurrentPlayers(gameState.players);
+
+			updatePlayerNicks();
+			hideNicknameModal();
+			sounds.place();
+		}
+
+		// -------------------- Game functions --------------------
+		function createFallingSymbols(symbol, count = 12) {
+			for (let i = 0; i < count; i++) {
+				setTimeout(() => {
+					const el = document.createElement('div');
+					el.className = 'falling-symbol';
+					el.textContent = symbol;
+					el.style.left = Math.random() * 100 + 'vw';
+					el.style.top = -20 - Math.random() * 30 + 'vh';
+					el.style.animationDelay = Math.random() * 1.5 + 's';
+					el.style.fontSize = (Math.random() * 3 + 2) + 'vmin';
+					fallingArea.appendChild(el);
+					sounds.falling();
+					setTimeout(() => el.remove(), 3200);
+				}, i * 60);
+			}
+		}
+
+		function animateLoss(losingSymbol) {
+			cells.forEach((cell, idx) => {
+				if (gameState.board[idx] === losingSymbol) {
+					cell.classList.add('lose');
+				}
+			});
+			createFallingSymbols(losingSymbol, 16);
+		}
+
+		function pauseGame() {
+			if (!gameState.gameActive || gameState.isPaused) return;
+			gameState.isPaused = true;
+			pauseOverlay.classList.add('active');
+			if (gameState.computerMoveTimeout) {
+				clearTimeout(gameState.computerMoveTimeout);
+				gameState.computerMoveTimeout = null;
+			}
+		}
+
+		function resumeGame() {
+			if (!gameState.isPaused) return;
+			gameState.isPaused = false;
+			pauseOverlay.classList.remove('active');
+			if (gameState.gameActive && gameState.mode === '1p' && gameState.currentPlayer !== gameState.playerSide) {
+				statusElement.textContent = t('computerThinking');
+				gameState.computerMoveTimeout = setTimeout(computerMove, 600);
+			}
+		}
+
+		function showSideButtons() {
+			selectSideTitle.textContent = t('selectSideTitle');
+			document.getElementById('side-buttons').style.display = 'flex';
+		}
+
+		function showSelectionScreen() {
+			selectionScreen.style.display = 'flex';
+			gameScreen.style.display = 'none';
+			gameState.playerSide = null;
+			gameState.currentPlayer = 'X';
+			gameState.gameActive = false;
+			document.getElementById('side-buttons').style.display = 'flex';
+			selectSideTitle.textContent = t('chooseModeTitle');
+		}
+
+		function chooseSide(side) {
+			gameState.playerSide = side;
+			if (!gameState.mode) gameState.mode = '1p';
+			finalizeModeAndSides();
+			selectionScreen.style.display = 'none';
+			gameScreen.style.display = 'flex';
+			gameState.currentPlayer = 'X';
+			gameState.gameActive = true;
+			gameState.isPaused = false;
+			startNewGame();
+		}
+
+		function finalizeModeAndSides() {
+			if (gameState.mode === '1p') {
+				gameState.computerSide = (gameState.playerSide === 'X') ? 'O' : 'X';
+			} else {
+				gameState.computerSide = null;
+			}
+		}
+
+		async function startNewGame() {
+			gameState.board = ['', '', '', '', '', '', '', '', ''];
+			gameState.gameActive = true;
+			gameState.isPaused = false;
+			gameState.currentPlayer = 'X';
+			cells.forEach(c => {
+				c.className = 'cell';
+				c.setAttribute('aria-pressed', 'false');
+			});
+			await loadScores();
+			updateCurrentPlayerDisplay();
+			updateStatusText();
+
+			if (gameState.mode === '1p' && gameState.computerSide === gameState.currentPlayer) {
+				statusElement.textContent = t('computerThinking');
+				gameState.computerMoveTimeout = setTimeout(computerMove, 700);
+			}
+		}
+
+		function handleCellClick(e) {
+			if (!gameState.gameActive || gameState.isPaused) return;
+			const idx = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+			if (gameState.board[idx] !== '') return;
+
+			if (gameState.mode === '1p' && gameState.currentPlayer === gameState.computerSide) return;
+
+			makeMove(idx);
+		}
+
+		function makeMove(index) {
+			gameState.board[index] = gameState.currentPlayer;
+			const cell = cells[index];
+			cell.classList.remove('x', 'o');
+			cell.classList.add(gameState.currentPlayer.toLowerCase());
+			cell.setAttribute('aria-pressed', 'true');
+
+			sounds.place();
+			checkGameResult();
+		}
+
+		function computerMove() {
+			if (!gameState.gameActive || gameState.isPaused) return;
+			const best = findBestMoveMinimax(gameState.board.slice(), gameState.computerSide);
+			if (best !== -1) {
+				gameState.computerMoveTimeout = setTimeout(() => {
+					makeMove(best);
+				}, 350 + Math.random() * 400);
+			}
+		}
+
+		function findBestMoveMinimax(board, aiPlayer) {
+			const human = (aiPlayer === 'X') ? 'O' : 'X';
+
+			for (let i = 0; i < 9; i++) {
+				if (board[i] === '') {
+					board[i] = aiPlayer;
+					if (checkWinnerStatic(board) === aiPlayer) {
+						return i;
+					}
+					board[i] = '';
+				}
+			}
+			for (let i = 0; i < 9; i++) {
+				if (board[i] === '') {
+					board[i] = human;
+					if (checkWinnerStatic(board) === human) {
+						board[i] = '';
+						return i;
+					}
+					board[i] = '';
+				}
+			}
+
+			if (board[4] === '') return 4;
+			const corners = [0, 2, 6, 8].filter(i => board[i] === '');
+			if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
+
+			let bestScore = -Infinity;
+			let move = -1;
+			for (let i = 0; i < 9; i++) {
+				if (board[i] === '') {
+					board[i] = aiPlayer;
+					const score = minimax(board, 0, false, aiPlayer, human);
+					board[i] = '';
+					if (score > bestScore) {
+						bestScore = score;
+						move = i;
+					}
+				}
+			}
+			return move === -1 ? randomAvailable(board) : move;
+		}
+
+		function randomAvailable(board) {
+			const avail = [];
+			for (let i = 0; i < 9; i++) if (board[i] === '') avail.push(i);
+			return avail.length ? avail[Math.floor(Math.random() * avail.length)] : -1;
+		}
+
+		function minimax(board, depth, isMaximizing, aiPlayer, human) {
+			const winner = checkWinnerStatic(board);
+			if (winner === aiPlayer) return 10 - depth;
+			if (winner === human) return depth - 10;
+			if (!board.includes('')) return 0;
+
+			if (isMaximizing) {
+				let best = -Infinity;
+				for (let i = 0; i < 9; i++) {
+					if (board[i] === '') {
+						board[i] = aiPlayer;
+						const score = minimax(board, depth + 1, false, aiPlayer, human);
+						board[i] = '';
+						best = Math.max(best, score);
+					}
+				}
+				return best;
+			} else {
+				let best = Infinity;
+				for (let i = 0; i < 9; i++) {
+					if (board[i] === '') {
+						board[i] = human;
+						const score = minimax(board, depth + 1, true, aiPlayer, human);
+						board[i] = '';
+						best = Math.min(best, score);
+					}
+				}
+				return best;
+			}
+		}
+
+		function checkWinnerStatic(b) {
+			for (const cond of gameState.winningConditions) {
+				const [a, b1, c] = cond;
+				if (b[a] && b[a] === b[b1] && b[a] === b[c]) return b[a];
+			}
+			return null;
+		}
+
+		function checkWinner() {
+			for (const cond of gameState.winningConditions) {
+				const [a, b, c] = cond;
+				if (gameState.board[a] && gameState.board[a] === gameState.board[b] && gameState.board[a] === gameState.board[c]) {
+					return gameState.board[a];
+				}
+			}
+			return null;
+		}
+
+		function getWinningCombo() {
+			for (const cond of gameState.winningConditions) {
+				const [a, b, c] = cond;
+				if (gameState.board[a] && gameState.board[a] === gameState.board[b] && gameState.board[a] === gameState.board[c]) {
+					return [a, b, c];
+				}
+			}
+			return [];
+		}
+
+		function checkGameResult() {
+			const winner = checkWinner();
+			if (winner) {
+				const winningCombo = getWinningCombo();
+				setTimeout(() => endGame(false, winningCombo), 220);
+				return;
+			}
+			if (!gameState.board.includes('')) {
+				setTimeout(() => endGame(true), 220);
+				return;
+			}
+			changePlayer();
+
+			if (gameState.gameActive && gameState.mode === '1p' && gameState.currentPlayer === gameState.computerSide) {
+				statusElement.textContent = t('computerThinking');
+				gameState.computerMoveTimeout = setTimeout(computerMove, 450);
+			} else {
+				statusElement.textContent = t('yourTurn');
+			}
+		}
+
+		function changePlayer() {
+			gameState.currentPlayer = gameState.currentPlayer === 'X' ? 'O' : 'X';
+			updateCurrentPlayerDisplay();
+		}
+
+		function updateCurrentPlayerDisplay() {
+			currentPlayerElement.textContent = gameState.currentPlayer;
+		}
+
+		async function endGame(isDraw, winningCombo = []) {
+			gameState.gameActive = false;
+
+			if (isDraw) {
+				statusElement.textContent = t('draw');
+				sounds.draw();
+				gameState.scores.draws++;
+				gameState.totalStats.draws++;
+			} else {
+				winningCombo.forEach(i => cells[i].classList.add('win'));
+				const winner = gameState.currentPlayer;
+				const loser = winner === 'X' ? 'O' : 'X';
+
+				if (gameState.mode === '2p') {
+					if (winner === 'X') {
+						statusElement.textContent = t('player1Win');
+						gameState.scores.player1++;
+						gameState.totalStats.player1Wins++;
+					} else {
+						statusElement.textContent = t('player2Win');
+						gameState.scores.player2++;
+						gameState.totalStats.player2Wins++;
+					}
+					sounds.win();
+				} else {
+					if (winner === gameState.playerSide) {
+						statusElement.textContent = t('win');
+						gameState.scores.player1++;
+						gameState.totalStats.player1Wins++;
+						sounds.win();
+						setTimeout(() => animateLoss(loser), 350);
+					} else {
+						statusElement.textContent = t('computerWin');
+						gameState.scores.player2++;
+						gameState.totalStats.computerWins++;
+						sounds.lose();
+						setTimeout(() => animateLoss(loser), 350);
+					}
+				}
+			}
+
+			// Сохраняем очки и статистику
+			await saveScores();
+			await saveStats();
+
+			updateScoresDisplay();
+		}
+
+		function updateScoresDisplay() {
+			player1ScoreElement.textContent = String(gameState.scores.player1);
+			player2ScoreElement.textContent = String(gameState.scores.player2);
+		}
+
+		async function restartGame(resetScores = false) {
+			fallingArea.innerHTML = '';
+			if (gameState.computerMoveTimeout) {
+				clearTimeout(gameState.computerMoveTimeout);
+				gameState.computerMoveTimeout = null;
+			}
+			if (resetScores) {
+				gameState.scores = { player1: 0, player2: 0, draws: 0 };
+				await saveScores();
+			}
+			startNewGame();
+		}
+
+		function updateStatusText() {
+			if (!gameState.gameActive) {
+				statusElement.textContent = t('gameStarted');
+				return;
+			}
+			if (gameState.mode === '1p') {
+				if (gameState.currentPlayer === gameState.computerSide) statusElement.textContent = t('computerThinking');
+				else statusElement.textContent = t('yourTurn');
+			} else {
+				statusElement.textContent = `${t('yourTurn')} (${gameState.currentPlayer})`;
+			}
+		}
+
+		// -------------------- Database functions --------------------
+		async function saveScores() {
+			try {
+				await gameDB.saveCurrentScores(gameState.scores);
+			} catch (error) {
+				console.error('Error saving scores:', error);
+			}
+		}
+
+		async function loadScores() {
+			try {
+				gameState.scores = await gameDB.loadCurrentScores();
+				updateScoresDisplay();
+			} catch (error) {
+				console.error('Error loading scores:', error);
+			}
+		}
+
+		async function saveStats() {
+			try {
+				await gameDB.saveStats(gameState.totalStats);
+			} catch (error) {
+				console.error('Error saving stats:', error);
+			}
+		}
+
+		async function loadStats() {
+			try {
+				gameState.totalStats = await gameDB.loadStats();
+			} catch (error) {
+				console.error('Error loading stats:', error);
+			}
+		}
+
+		async function resetAllStats() {
+			try {
+				await gameDB.resetAllStats();
+				gameState.scores = { player1: 0, player2: 0, draws: 0 };
+				gameState.totalStats = {
+					player1Wins: 0,
+					player2Wins: 0,
+					computerWins: 0,
+					draws: 0
+				};
+				updateScoresDisplay();
+				sounds.place();
+				alert(t('statsReset'));
+			} catch (error) {
+				console.error('Error resetting stats:', error);
+			}
+		}
+
+		// -------------------- Game initialization --------------------
+		async function initGame() {
+			try {
+				await gameDB.init();
+				// Загружаем игроков, очки и статистику
+				gameState.players = await gameDB.loadCurrentPlayers();
+				await loadScores();
+				await loadStats();
+				updatePlayerNicks();
+			} catch (error) {
+				console.error('Database initialization failed:', error);
+			}
+
+			// Event listeners
+			languageBtn.addEventListener('click', () => {
+				sounds.click();
+				gameState.language = gameState.language === 'ru' ? 'en' : 'ru';
+				languageBtn.textContent = gameState.language === 'ru' ? 'EN' : 'RU';
+				updateLanguageTexts();
+				updateStatusText();
+			});
+
+			mode1pBtn.addEventListener('click', () => {
+				sounds.click();
+				gameState.mode = '1p';
+				updateScoreLabels();
+				updatePlayerNicks();
+				showSideButtons();
+			});
+
+			mode2pBtn.addEventListener('click', () => {
+				sounds.click();
+				gameState.mode = '2p';
+				updateScoreLabels();
+				updatePlayerNicks();
+				showSideButtons();
+			});
+
+			selectXButton.addEventListener('click', () => { sounds.click(); chooseSide('X'); });
+			selectOButton.addEventListener('click', () => { sounds.click(); chooseSide('O'); });
+
+			// Кнопки редактирования ника
+			nickEditButtons.forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					sounds.click();
+					const player = e.target.dataset.player;
+					showNicknameModal(player);
+				});
+			});
+
+			// Выбор игрока в модальном окне
+			playerSelectButtons.addEventListener('click', (e) => {
+				if (e.target.classList.contains('player-select-btn')) {
+					sounds.click();
+					gameState.currentEditingPlayer = e.target.dataset.player;
+					nicknameInput.value = gameState.players[gameState.currentEditingPlayer].nickname;
+					updateModalTitle();
+					updatePlayerSelectButtons();
+					nicknameInput.focus();
+					nicknameInput.select();
+				}
+			});
+
+			// Модальное окно
+			saveNicknameBtn.addEventListener('click', saveNickname);
+			cancelNicknameBtn.addEventListener('click', hideNicknameModal);
+			nicknameInput.addEventListener('keypress', (e) => {
+				if (e.key === 'Enter') saveNickname();
+			});
+
+			// Сброс статистики
+			resetStatsBtn.addEventListener('click', () => {
+				sounds.click();
+				if (confirm('Вы уверены что хотите сбросить всю статистику? Это действие нельзя отменить.')) {
+					resetAllStats();
+				}
+			});
+
+			// Игровые события
+			cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+			restartButton.addEventListener('click', () => { sounds.click(); restartGame(false); });
+			changeSideButton.addEventListener('click', () => { sounds.click(); showSelectionScreen(); });
+			resumeBtn.addEventListener('click', () => { sounds.click(); resumeGame(); });
+
+			// Пауза
+			document.addEventListener('visibilitychange', () => {
+				if (document.hidden) pauseGame(); else resumeGame();
+			});
+			window.addEventListener('blur', () => pauseGame());
+			window.addEventListener('focus', () => resumeGame());
+
+			// Touch events
+			document.addEventListener('touchmove', function (e) {
+				if (gameState.gameActive) e.preventDefault();
+			}, { passive: false });
+
+			// Keyboard
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') {
+					if (gameState.isPaused) resumeGame(); else pauseGame();
+				}
+			});
+
+			cells.forEach((cell) => {
+				cell.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						cell.click();
+					}
+				});
+			});
+
+			updateLanguageTexts();
+			showSelectionScreen();
+			hideLoadingScreen();
+		}
+
+		function hideLoadingScreen() {
+			if (!loadingScreen) return;
+			loadingScreen.style.opacity = '0';
+			setTimeout(() => { loadingScreen.style.display = 'none'; }, 350);
+		}
+
+		// Initialize the game when DOM is loaded
+		document.addEventListener('DOMContentLoaded', initGame);
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гонка на выживание</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        #gameCanvas {
+            background: #2d5016;
+            display: block;
+        }
+        
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .score, .speed {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10;
+        }
+        
+        .title {
+            font-size: 36px;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ffd700;
+            text-align: center;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #00ff00;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ffd700, #ff6b00);
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #ffd700;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #00ffff;
+            max-width: 350px;
+            margin-top: 15px;
+        }
+        
+        .instructions h3 {
+            color: #00ffff;
+            margin-bottom: 8px;
+        }
+        
+        .instructions ul {
+            list-style: none;
+            text-align: left;
+        }
+        
+        .instructions li {
+            margin: 6px 0;
+            color: #cccccc;
+            font-size: 14px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .game-over {
+            color: #ff0000;
+            text-shadow: 0 0 10px #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="score">Очки: <span id="score">0</span></div>
+            <div class="speed">Скорость: <span id="speed">0</span> км/ч</div>
+        </div>
+        
+        <div id="startScreen" class="screen">
+            <h1 class="title">🏎️ ГОНКА НА ВЫЖИВАНИЕ</h1>
+            <p class="subtitle">Уворачивайся от препятствий!</p>
+            <button class="btn" onclick="startGame()">🏁 СТАРТ</button>
+            
+            <div class="instructions">
+                <h3>🎮 Управление:</h3>
+                <ul>
+                    <li>⬅️ Стрелка влево - движение влево</li>
+                    <li>➡️ Стрелка вправо - движение вправо</li>
+                    <li>🎯 Объезжай препятствия</li>
+                    <li>⚡ Набирай скорость и очки</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="gameOverScreen" class="screen hidden">
+            <h1 class="title game-over">💥 АВАРИЯ!</h1>
+            <p class="subtitle">Результат: <span id="finalScore">0</span> очков</p>
+            <button class="btn" onclick="restartGame()">🔄 ЕЩЕ РАЗ</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Игровые переменные
+        let score = 0;
+        let gameRunning = false;
+        let animationId;
+        let gameSpeed = 5;
+        let roadOffset = 0;
+        
+        // Игрок
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 100,
+            width: 50,
+            height: 80,
+            speed: 8,
+            color: '#ff0000'
+        };
+        
+        // Препятствия
+        const obstacles = [];
+        let obstacleSpawnRate = 120;
+        
+        // Дорога
+        const road = {
+            width: 300,
+            laneWidth: 100,
+            markings: []
+        };
+        
+        // Инициализация разметки
+        for (let i = -50; i < canvas.height + 50; i += 50) {
+            road.markings.push(i);
+        }
+        
+        // Функции игры
+        function startGame() {
+            document.getElementById('startScreen').classList.add('hidden');
+            gameRunning = true;
+            score = 0;
+            gameSpeed = 5;
+            obstacles.length = 0;
+            player.x = canvas.width / 2 - 25;
+            updateUI();
+            gameLoop();
+        }
+        
+        function restartGame() {
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            startGame();
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            cancelAnimationFrame(animationId);
+        }
+        
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('speed').textContent = Math.floor(gameSpeed * 20);
+        }
+        
+        function drawRoad() {
+            // Асфальт
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(canvas.width / 2 - road.width / 2, 0, road.width, canvas.height);
+            
+            // Разметка
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([20, 20]);
+            
+            road.markings.forEach(mark => {
+                const y = (mark + roadOffset) % (canvas.height + 100) - 50;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, y);
+                ctx.lineTo(canvas.width / 2, y + 20);
+                ctx.stroke();
+            });
+            
+            ctx.setLineDash([]);
+            
+            // Бордюры
+            ctx.fillStyle = '#888888';
+            ctx.fillRect(canvas.width / 2 - road.width / 2 - 10, 0, 10, canvas.height);
+            ctx.fillRect(canvas.width / 2 + road.width / 2, 0, 10, canvas.height);
+        }
+        
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            
+            // Кузов
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Окна
+            ctx.fillStyle = '#87ceeb';
+            ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, 20);
+            
+            // Фары
+            ctx.fillStyle = '#ffff00';
+            ctx.fillRect(player.x + 5, player.y + player.height - 5, 10, 5);
+            ctx.fillRect(player.x + player.width - 15, player.y + player.height - 5, 10, 5);
+            
+            // Колеса
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(player.x - 5, player.y + 15, 5, 20);
+            ctx.fillRect(player.x + player.width, player.y + 15, 5, 20);
+            ctx.fillRect(player.x - 5, player.y + player.height - 35, 5, 20);
+            ctx.fillRect(player.x + player.width, player.y + player.height - 35, 5, 20);
+        }
+        
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = obstacle.color;
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                
+                // Детали препятствий
+                ctx.fillStyle = '#666666';
+                ctx.fillRect(obstacle.x + 5, obstacle.y + 5, obstacle.width - 10, 10);
+            });
+        }
+        
+        function spawnObstacle() {
+            const lane = Math.floor(Math.random() * 3);
+            const x = canvas.width / 2 - road.width / 2 + lane * road.laneWidth + 25;
+            
+            obstacles.push({
+                x: x,
+                y: -100,
+                width: 50,
+                height: 80,
+                speed: gameSpeed,
+                color: `hsl(${Math.random() * 360}, 70%, 50%)`
+            });
+        }
+        
+        function updateObstacles() {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                obstacle.y += obstacle.speed;
+                
+                // Проверка столкновения
+                if (player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y) {
+                    gameOver();
+                    return;
+                }
+                
+                // Удаление препятствий за экраном
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    updateUI();
+                }
+            }
+        }
+        
+        function updateRoad() {
+            roadOffset += gameSpeed;
+            if (roadOffset >= 50) roadOffset = 0;
+        }
+        
+        function increaseDifficulty() {
+            if (score > 0 && score % 100 === 0) {
+                gameSpeed += 0.2;
+                obstacleSpawnRate = Math.max(30, 120 - score / 10);
+            }
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Очистка экрана
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawRoad();
+            drawPlayer();
+            drawObstacles();
+            
+            updateRoad();
+            updateObstacles();
+            increaseDifficulty();
+            
+            // Спавн препятствий
+            if (Math.random() < 1 / obstacleSpawnRate) {
+                spawnObstacle();
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Управление
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    player.x = Math.max(canvas.width / 2 - road.width / 2, player.x - player.speed);
+                    break;
+                case 'ArrowRight':
+                    player.x = Math.min(canvas.width / 2 + road.width / 2 - player.width, player.x + player.speed);
+                    break;
+            }
+        });
+        
+        // Запуск игры при загрузке
+        window.addEventListener('load', () => {
+            // Игра готова к запуску
+        });
+    </script>
+</body>
+</html>

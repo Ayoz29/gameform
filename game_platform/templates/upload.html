@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Загрузка игры - Game Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0"><i class="fas fa-upload me-2"></i>Загрузка новой игры</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('upload_game') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Название игры *</label>
+                        <input type="text" class="form-control" id="title" name="title" required 
+                               placeholder="Введите название игры">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание игры</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" 
+                                  placeholder="Опишите вашу игру"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория *</label>
+                        <select class="form-control" id="category" name="category" required>
+                            <option value="">Выберите категорию</option>
+                            {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="html_file" class="form-label">HTML файл игры *</label>
+                        <input type="file" class="form-control" id="html_file" name="html_file"
+                               accept=".html,.htm" required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Загрузите HTML файл вашей игры. Файл будет проверен на безопасность.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cover_image" class="form-label">Обложка игры *</label>
+                        <input type="file" class="form-control" id="cover_image" name="cover_image"
+                               accept="image/*" required>
+                        <div class="form-text">Загрузите изображение для обложки игры</div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-shield-alt me-2"></i>Проверка безопасности</h6>
+                        <p class="mb-0 small">
+                            Все загружаемые игры проходят автоматическую проверку на запрещенный контент.
+                            Игры содержащие порнографию, насилие или другой недопустимый контент будут отклонены.
+                        </p>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-upload me-1"></i> Загрузить игру
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Назад
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
