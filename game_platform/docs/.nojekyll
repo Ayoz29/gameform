@@ -1,0 +1,5 @@
+# Создайте пустой файл .nojekyll в папке docs
+echo "" > docs/.nojekyll
+
+# Или создайте в корне проекта и переместите
+touch .nojekyll

@@ -1,0 +1,35 @@
+# Сначала создайте простой index.html для GitHub Pages
+cat > docs/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Platform</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Game Platform</h1>
+        <p>Игровая платформа скоро будет запущена!</p>
+        <p>Домен: game-ayoz.netlify.app</p>
+    </div>
+</body>
+</html>
+EOF
