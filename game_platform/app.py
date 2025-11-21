@@ -5,18 +5,22 @@ import re
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = os.environ.get('SECRET_KEY', 'game-platform-secret-key-2025')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # Для Netlify - используем абсолютные пути
-if 'NETLIFY' in os.environ:
-    DATA_DIR = '/tmp/data'
-else:
-    DATA_DIR = 'data'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 
 USERS_FILE = os.path.join(DATA_DIR, 'users.json')
 GAMES_FILE = os.path.join(DATA_DIR, 'games.json')
+
+# Создаем необходимые директории
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs('static/games', exist_ok=True)
+os.makedirs('static/images', exist_ok=True)
+os.makedirs('templates', exist_ok=True)
 
 # Категории игр
 CATEGORIES = [
@@ -581,5 +585,4 @@ with app.app_context():
     init_data()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=5000, debug=True)

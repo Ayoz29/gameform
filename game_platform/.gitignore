@@ -1,0 +1,48 @@
+# Создаем .gitignore файл
+cat > .gitignore << EOF
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+
+# Data files (если не хотите коммитить данные пользователей)
+data/
+*.db
+*.sqlite3
+
+# Flask
+instance/
+
+# Netlify
+.netlify/
+EOF
